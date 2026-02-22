@@ -9,20 +9,104 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Play, Pause, RotateCcw, Coffee, Brain, Armchair } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+
+// SVG Circular Progress Ring
+function CircularProgress({
+  progress,
+  isActive,
+  mode,
+}: {
+  progress: number;
+  isActive: boolean;
+  mode: TimerMode;
+}) {
+  const size = 280;
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - progress);
+
+  const modeColors: Record<TimerMode, string> = {
+    'focus': 'stroke-primary',
+    'short-break': 'stroke-emerald-500',
+    'long-break': 'stroke-blue-500',
+  };
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="absolute inset-0 -rotate-90"
+    >
+      {/* Background circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        className="text-muted/20"
+      />
+      {/* Progress circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        className={cn(
+          modeColors[mode],
+          'transition-[stroke-dashoffset] duration-1000 ease-linear',
+          isActive && 'drop-shadow-[0_0_6px_currentColor]'
+        )}
+      />
+    </svg>
+  );
+}
 
 export default function TimerPage() {
-  const { timer, tasks, setTimer, resetTimer, switchMode } = useStore();
+  const { timer, tasks, settings, setTimer, resetTimer, switchMode } = useStore();
   const [mounted, setMounted] = useState(false);
+  const [tick, setTick] = useState(false);
+  const prevTimeLeftRef = useRef(timer.timeLeft);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
+
+  // Detect each tick to trigger pulse animation
+  useEffect(() => {
+    if (timer.isActive && timer.timeLeft !== prevTimeLeftRef.current) {
+      setTick(true);
+      const timeout = setTimeout(() => setTick(false), 150);
+      prevTimeLeftRef.current = timer.timeLeft;
+      return () => clearTimeout(timeout);
+    }
+    prevTimeLeftRef.current = timer.timeLeft;
+  }, [timer.timeLeft, timer.isActive]);
+
+  // Calculate total duration for progress ring
+  const getTotalDuration = () => {
+    switch (timer.mode) {
+      case 'focus': return settings.focusDuration * 60;
+      case 'short-break': return settings.shortBreakDuration * 60;
+      case 'long-break': return settings.longBreakDuration * 60;
+    }
+  };
+
+  const totalDuration = getTotalDuration();
+  const progress = totalDuration > 0 ? (totalDuration - timer.timeLeft) / totalDuration : 0;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -55,6 +139,8 @@ export default function TimerPage() {
     return null;
   }
 
+  const modeLabel = timer.mode === 'focus' ? 'Focus' : timer.mode === 'short-break' ? 'Short Break' : 'Long Break';
+
   return (
     <div className="flex flex-col items-center justify-center space-y-8 py-8">
       <div className="text-center">
@@ -62,11 +148,13 @@ export default function TimerPage() {
         <p className="text-muted-foreground">Stay focused and track your productivity.</p>
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Mode Selector */}
+      <div className="flex items-center gap-2 sm:gap-4">
         <Button
           variant={timer.mode === 'focus' ? 'default' : 'outline'}
           onClick={() => handleModeChange('focus')}
           className="gap-2"
+          size="sm"
         >
           <Brain className="h-4 w-4" /> Focus
         </Button>
@@ -74,6 +162,7 @@ export default function TimerPage() {
           variant={timer.mode === 'short-break' ? 'default' : 'outline'}
           onClick={() => handleModeChange('short-break')}
           className="gap-2"
+          size="sm"
         >
           <Coffee className="h-4 w-4" /> Short Break
         </Button>
@@ -81,39 +170,72 @@ export default function TimerPage() {
           variant={timer.mode === 'long-break' ? 'default' : 'outline'}
           onClick={() => handleModeChange('long-break')}
           className="gap-2"
+          size="sm"
         >
           <Armchair className="h-4 w-4" /> Long Break
         </Button>
       </div>
 
+      {/* Timer Display with Circular Progress */}
       <Card className="w-full max-w-md">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <div className={cn(
-            "text-8xl font-bold tabular-nums tracking-tighter transition-colors duration-500",
-            timer.isActive ? "text-primary" : "text-muted-foreground"
-          )}>
-            {formatTime(timer.timeLeft)}
+        <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+          {/* Circular Timer Container */}
+          <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>
+            <CircularProgress progress={progress} isActive={timer.isActive} mode={timer.mode} />
+
+            {/* Time Display */}
+            <div className="z-10 flex flex-col items-center">
+              <div
+                className={cn(
+                  'text-6xl sm:text-7xl font-bold tabular-nums tracking-tighter transition-all duration-150',
+                  timer.isActive ? 'text-foreground' : 'text-muted-foreground',
+                  tick && timer.isActive && 'scale-[1.02]'
+                )}
+              >
+                {formatTime(timer.timeLeft)}
+              </div>
+              <p className={cn(
+                'mt-1 text-sm font-medium capitalize transition-colors',
+                timer.isActive ? 'text-primary' : 'text-muted-foreground'
+              )}>
+                {modeLabel}
+              </p>
+            </div>
           </div>
-          
-          <div className="mt-8 flex w-full max-w-xs flex-col gap-4">
+
+          {/* Controls */}
+          <div className="mt-6 flex w-full max-w-xs flex-col gap-4">
             <div className="flex items-center justify-center gap-4">
-              <Button size="lg" className="h-16 w-32 rounded-full text-xl" onClick={toggleTimer}>
+              <Button
+                size="lg"
+                className={cn(
+                  'h-14 w-32 rounded-full text-lg transition-all duration-200',
+                  timer.isActive && 'shadow-lg shadow-primary/25'
+                )}
+                onClick={toggleTimer}
+              >
                 {timer.isActive ? (
                   <>
-                    <Pause className="mr-2 h-6 w-6" /> Pause
+                    <Pause className="mr-2 h-5 w-5" /> Pause
                   </>
                 ) : (
                   <>
-                    <Play className="mr-2 h-6 w-6" /> Start
+                    <Play className="mr-2 h-5 w-5" /> Start
                   </>
                 )}
               </Button>
-              <Button size="icon" variant="outline" className="h-16 w-16 rounded-full" onClick={resetTimer}>
-                <RotateCcw className="h-6 w-6" />
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-14 w-14 rounded-full"
+                onClick={resetTimer}
+              >
+                <RotateCcw className="h-5 w-5" />
               </Button>
             </div>
 
-            <div className="mt-4 space-y-2">
+            {/* Task Link */}
+            <div className="mt-2 space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
                 Link to Task (Optional)
               </label>

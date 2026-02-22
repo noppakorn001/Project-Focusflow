@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 export function SyncManager() {
-  const { tasks, timer, settings, loadState, setSyncStatus } = useStore();
+  const { tasks, categories, timer, settings, loadState, setSyncStatus } = useStore();
   const isLoadedRef = useRef(false);
 
   // Initial Load
@@ -15,7 +15,7 @@ export function SyncManager() {
         const authRes = await fetch('/api/auth/status');
         const { isAuthenticated } = await authRes.json();
         if (!isAuthenticated) {
-          isLoadedRef.current = true; // Allow sync if not authenticated (local only)
+          isLoadedRef.current = true;
           return;
         }
 
@@ -39,7 +39,7 @@ export function SyncManager() {
     loadData();
   }, [loadState, setSyncStatus]);
 
-  // Auto-Sync
+  // Auto-Sync (includes categories)
   useEffect(() => {
     if (!isLoadedRef.current) return;
 
@@ -48,7 +48,7 @@ export function SyncManager() {
       try {
         const authRes = await fetch('/api/auth/status');
         const { isAuthenticated } = await authRes.json();
-        
+
         if (!isAuthenticated) {
           setSyncStatus('idle');
           return;
@@ -57,11 +57,17 @@ export function SyncManager() {
         const response = await fetch('/api/drive/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tasks, timer, settings, lastSynced: Date.now() }),
+          body: JSON.stringify({
+            tasks,
+            categories,
+            timer,
+            settings,
+            lastSynced: Date.now(),
+          }),
         });
-        
+
         if (!response.ok) throw new Error('Sync failed');
-        
+
         setSyncStatus('success');
         setTimeout(() => setSyncStatus('idle'), 2000);
       } catch (error) {
@@ -72,7 +78,7 @@ export function SyncManager() {
 
     const timeoutId = setTimeout(syncData, 5000); // Debounce 5s
     return () => clearTimeout(timeoutId);
-  }, [tasks, timer, settings, setSyncStatus]);
+  }, [tasks, categories, timer, settings, setSyncStatus]);
 
   return null;
 }

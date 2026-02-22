@@ -45,6 +45,7 @@ export interface AppState {
     isActive: boolean;
     mode: TimerMode;
     linkedTaskId: string | null;
+    startedAt: number | null; // Date.now() when timer was started/resumed
   };
   settings: TimerSettings;
   syncStatus: 'idle' | 'syncing' | 'error' | 'success';
@@ -54,7 +55,7 @@ export interface AppState {
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completedAt' | 'timeSpent'>) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
-  
+
   addCategory: (category: Omit<Category, 'id'>) => void;
   updateCategory: (id: string, updates: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
@@ -65,8 +66,9 @@ export interface AppState {
   setLastSynced: (time: number) => void;
   resetTimer: () => void;
   tickTimer: () => void;
+  advanceTimer: (seconds: number) => void;
   switchMode: (mode: TimerMode) => void;
-  
+
   // For Drive Sync
   loadState: (state: Partial<AppState>) => void;
 }
@@ -95,6 +97,7 @@ export const useStore = create<AppState>()(
         isActive: false,
         mode: 'focus',
         linkedTaskId: null,
+        startedAt: null,
       },
       settings: DEFAULT_SETTINGS,
       syncStatus: 'idle',
@@ -151,9 +154,16 @@ export const useStore = create<AppState>()(
         })),
 
       setTimer: (updates) =>
-        set((state) => ({
-          timer: { ...state.timer, ...updates },
-        })),
+        set((state) => {
+          const newTimer = { ...state.timer, ...updates };
+          // Record startedAt when activating, clear when deactivating
+          if (updates.isActive === true && !state.timer.isActive) {
+            newTimer.startedAt = Date.now();
+          } else if (updates.isActive === false) {
+            newTimer.startedAt = null;
+          }
+          return { timer: newTimer };
+        }),
 
       updateSettings: (updates) =>
         set((state) => ({
@@ -174,6 +184,7 @@ export const useStore = create<AppState>()(
             ...timer,
             timeLeft: duration * 60,
             isActive: false,
+            startedAt: null,
           },
         });
       },
@@ -215,8 +226,33 @@ export const useStore = create<AppState>()(
             mode,
             timeLeft: duration * 60,
             isActive: false,
+            startedAt: null,
           },
         }));
+      },
+
+      // Bulk advance timer by N seconds (used for background tab catch-up)
+      advanceTimer: (seconds) => {
+        const { timer, tasks } = get();
+        if (!timer.isActive || seconds <= 0) return;
+
+        const actualSeconds = Math.min(seconds, timer.timeLeft);
+        const newTimeLeft = timer.timeLeft - actualSeconds;
+
+        // Update linked task timeSpent in bulk
+        let newTasks = tasks;
+        if (timer.linkedTaskId && timer.mode === 'focus') {
+          newTasks = tasks.map((t) =>
+            t.id === timer.linkedTaskId
+              ? { ...t, timeSpent: t.timeSpent + actualSeconds }
+              : t
+          );
+        }
+
+        set({
+          timer: { ...timer, timeLeft: newTimeLeft },
+          tasks: newTasks,
+        });
       },
 
       loadState: (loadedState) => {
@@ -224,6 +260,10 @@ export const useStore = create<AppState>()(
         set((state) => ({
           ...state,
           ...loadedState,
+          // Restore categories from Drive if available, otherwise keep current
+          categories: loadedState.categories && loadedState.categories.length > 0
+            ? loadedState.categories
+            : state.categories,
           timer: { ...state.timer, ...loadedState.timer, isActive: false }, // Don't auto-start loaded timer
         }));
       },
@@ -232,9 +272,10 @@ export const useStore = create<AppState>()(
       name: 'focus-flow-storage',
       partialize: (state) => ({
         tasks: state.tasks,
+        categories: state.categories,
         settings: state.settings,
         lastSynced: state.lastSynced,
-      }), // Only persist these to localStorage
+      }), // Persist tasks, categories, settings, lastSynced to localStorage
     }
   )
 );

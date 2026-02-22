@@ -40,8 +40,16 @@ const SettingsSchema = z.object({
   autoStartPomodoros: z.boolean(),
 });
 
+const CategorySchema = z.object({
+  id: z.string(),
+  name: z.string().max(100),
+  icon: z.string().max(50),
+  color: z.string().max(20),
+});
+
 const SyncBodySchema = z.object({
   tasks: z.array(TaskSchema).max(10000),
+  categories: z.array(CategorySchema).max(100).optional(),
   timer: TimerSchema.optional(),
   settings: SettingsSchema.optional(),
   lastSynced: z.number().optional(),
