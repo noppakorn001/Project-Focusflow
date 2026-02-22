@@ -14,8 +14,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
 } from 'recharts';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useEffect, useState } from 'react';
@@ -52,7 +50,7 @@ export default function AnalyticsPage() {
     const tasksCompletedOnDay = tasks.filter((t) =>
       t.completedAt && isSameDay(new Date(t.completedAt), day)
     ).length;
-    
+
     return {
       name: format(day, 'EEE'),
       tasks: tasksCompletedOnDay,
@@ -73,7 +71,7 @@ export default function AnalyticsPage() {
       .reduce((acc, t) => acc + t.timeSpent, 0);
     return {
       name: cat.name,
-      value: Math.round(timeSpent / 60), // minutes
+      value: Math.round(timeSpent / 60),
       color: cat.color
     };
   }).filter(d => d.value > 0);
@@ -82,142 +80,166 @@ export default function AnalyticsPage() {
   const completedTasks = tasks.filter(t => t.status === 'completed' && t.completedAt);
   const onTimeCount = completedTasks.filter(t => !t.deadline || (t.completedAt! <= t.deadline)).length;
   const lateCount = completedTasks.filter(t => t.deadline && (t.completedAt! > t.deadline)).length;
-  
+
   const completionRateData = [
     { name: 'On Time', value: onTimeCount },
     { name: 'Late', value: lateCount },
   ].filter(d => d.value > 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">Visualize your productivity trends.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* First row: Task Status + Weekly Completion — stack on mobile */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Task Status Pie Chart */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Task Status</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Task Status</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="40%"
+                    outerRadius="60%"
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
         {/* Weekly Completion Bar Chart */}
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Tasks Completed This Week</CardTitle>
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Tasks Completed This Week</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="tasks" fill="#8884d8" name="Tasks Completed" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={30} />
+                  <Tooltip />
+                  <Bar dataKey="tasks" fill="#8884d8" name="Tasks Completed" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
-        
+      </div>
+
+      {/* Second row: Category + Completion Rate + Priority — stack on mobile */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Focus Time by Category */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Focus Time by Category</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Focus Time by Category</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryFocusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {categoryFocusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value} mins`} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {categoryFocusData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryFocusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="40%"
+                      outerRadius="60%"
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {categoryFocusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value} mins`} />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                  No focus time recorded yet.
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         {/* Completion Rate (On Time vs Late) */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Completion Rate</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Completion Rate</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            {completionRateData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={completionRateData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                  >
-                    <Cell fill="#10b981" /> {/* On Time - Green */}
-                    <Cell fill="#ef4444" /> {/* Late - Red */}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">
-                No completed tasks with deadlines yet.
-              </div>
-            )}
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {completionRateData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={completionRateData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="60%"
+                      dataKey="value"
+                    >
+                      <Cell fill="#10b981" /> {/* On Time - Green */}
+                      <Cell fill="#ef4444" /> {/* Late - Red */}
+                    </Pie>
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                  No completed tasks with deadlines yet.
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         {/* Focus Time by Priority */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Focus Time by Priority</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Focus Time by Priority</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={priorityData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={60} />
-                <Tooltip formatter={(value) => `${value} mins`} />
-                <Legend />
-                <Bar dataKey="value" fill="#82ca9d" name="Minutes" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              {priorityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={priorityData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tick={{ fontSize: 12 }} />
+                    <YAxis dataKey="name" type="category" width={55} tick={{ fontSize: 12 }} />
+                    <Tooltip formatter={(value) => `${value} mins`} />
+                    <Bar dataKey="value" fill="#82ca9d" name="Minutes" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                  No focus time recorded yet.
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
