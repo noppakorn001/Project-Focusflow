@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { Cloud, LogOut, Moon, Sun } from 'lucide-react';
+import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 
 export default function SettingsPage() {
   const { settings, updateSettings, syncStatus, setSyncStatus } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const { confirm, dialogProps } = useConfirmDialog();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -28,12 +30,12 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/auth/url');
       const { url } = await res.json();
-      
+
       const width = 600;
       const height = 700;
       const left = window.screen.width / 2 - width / 2;
       const top = window.screen.height / 2 - height / 2;
-      
+
       const popup = window.open(
         url,
         'google_oauth',
@@ -54,7 +56,7 @@ export default function SettingsPage() {
           setSyncStatus('idle'); // Will trigger sidebar effect
         }
       };
-      
+
       window.addEventListener('message', handleMessage);
     } catch (error) {
       console.error('Auth error:', error);
@@ -62,13 +64,19 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDisconnectDrive = async () => {
-    if (confirm('Are you sure you want to disconnect? Syncing will stop.')) {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      setIsAuthenticated(false);
-      setSyncStatus('idle');
-      toast.success('Disconnected from Google Drive');
-    }
+  const handleDisconnectDrive = () => {
+    confirm({
+      title: 'Disconnect Google Drive',
+      description: 'Are you sure you want to disconnect? Syncing will stop and your data will only be stored locally.',
+      confirmLabel: 'Disconnect',
+      variant: 'destructive',
+      onConfirm: async () => {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        setIsAuthenticated(false);
+        setSyncStatus('idle');
+        toast.success('Disconnected from Google Drive');
+      },
+    });
   };
 
   const toggleTheme = () => {
@@ -120,7 +128,7 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between space-x-2">
             <Label htmlFor="auto-start-breaks">Auto-start Breaks</Label>
             <Switch
@@ -129,7 +137,7 @@ export default function SettingsPage() {
               onCheckedChange={(checked) => updateSettings({ autoStartBreaks: checked })}
             />
           </div>
-          
+
           <div className="flex items-center justify-between space-x-2">
             <Label htmlFor="auto-start-pomodoros">Auto-start Pomodoros</Label>
             <Switch
@@ -176,7 +184,7 @@ export default function SettingsPage() {
           <CardDescription>Customize the look and feel.</CardDescription>
         </CardHeader>
         <CardContent>
-           <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
               <span>Dark Mode</span>
@@ -188,6 +196,7 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

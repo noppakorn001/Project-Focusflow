@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 
 const ICONS = {
   // Work & Productivity
@@ -161,6 +162,7 @@ export function CategoryManager() {
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof ICONS>('Star');
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [isOpen, setIsOpen] = useState(false);
+  const { confirm, dialogProps } = useConfirmDialog();
 
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) {
@@ -180,125 +182,134 @@ export function CategoryManager() {
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (confirm('Delete this category? Tasks will be unassigned.')) {
-      deleteCategory(id);
-      toast.success('Category deleted');
-    }
+    confirm({
+      title: 'Delete Category',
+      description: 'Delete this category? Tasks in this category will be unassigned.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+      onConfirm: () => {
+        deleteCategory(id);
+        toast.success('Category deleted');
+      },
+    });
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="mr-2 h-4 w-4" /> Manage Categories
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px] max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Manage Categories</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Plus className="mr-2 h-4 w-4" /> Manage Categories
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[480px] max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Manage Categories</DialogTitle>
+          </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-80px)] pr-4">
-          <div className="grid gap-4 py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Existing Categories</Label>
-                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {categories.map((category) => {
-                    const Icon = ICONS[category.icon as keyof typeof ICONS] || Star;
-                    return (
-                      <div key={category.id} className="flex items-center justify-between rounded-md border p-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                            <Icon className="h-4 w-4" style={{ color: category.color }} />
+          <ScrollArea className="max-h-[calc(90vh-80px)] pr-4">
+            <div className="grid gap-4 py-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Existing Categories</Label>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {categories.map((category) => {
+                      const Icon = ICONS[category.icon as keyof typeof ICONS] || Star;
+                      return (
+                        <div key={category.id} className="flex items-center justify-between rounded-md border p-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                              <Icon className="h-4 w-4" style={{ color: category.color }} />
+                            </div>
+                            <span className="font-medium">{category.name}</span>
                           </div>
-                          <span className="font-medium">{category.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteCategory(category.id)}
+                            disabled={categories.length <= 1}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteCategory(category.id)}
-                          disabled={categories.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              <div className="border-t pt-4 space-y-4">
-                <Label>Add New Category</Label>
-                <div className="grid gap-3">
-                  <Input
-                    placeholder="Category Name"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                  />
+                <div className="border-t pt-4 space-y-4">
+                  <Label>Add New Category</Label>
+                  <div className="grid gap-3">
+                    <Input
+                      placeholder="Category Name"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
 
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Icon</Label>
-                    <div className="grid grid-cols-8 gap-1.5">
-                      {ICON_NAMES.map((iconName) => {
-                        const Icon = ICONS[iconName];
-                        return (
-                          <Tooltip key={iconName}>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant={selectedIcon === iconName ? "default" : "outline"}
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => setSelectedIcon(iconName)}
-                              >
-                                <Icon className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="text-xs">
-                              {ICON_LABELS[iconName] || iconName}
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Color</Label>
-                    <div className="grid grid-cols-10 gap-1.5">
-                      {COLORS.map((color) => (
-                        <button
-                          key={color}
-                          className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${selectedColor === color ? 'border-primary ring-2 ring-primary/30' : 'border-transparent'
-                            }`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => setSelectedColor(color)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preview */}
-                  {newCategoryName && (
-                    <div className="flex items-center gap-2 rounded-md border border-dashed p-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                        {(() => {
-                          const PreviewIcon = ICONS[selectedIcon];
-                          return <PreviewIcon className="h-4 w-4" style={{ color: selectedColor }} />;
-                        })()}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Icon</Label>
+                      <div className="grid grid-cols-8 gap-1.5">
+                        {ICON_NAMES.map((iconName) => {
+                          const Icon = ICONS[iconName];
+                          return (
+                            <Tooltip key={iconName}>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant={selectedIcon === iconName ? "default" : "outline"}
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => setSelectedIcon(iconName)}
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="text-xs">
+                                {ICON_LABELS[iconName] || iconName}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
                       </div>
-                      <span className="text-sm font-medium">{newCategoryName}</span>
-                      <span className="text-xs text-muted-foreground ml-auto">Preview</span>
                     </div>
-                  )}
 
-                  <Button onClick={handleAddCategory} className="mt-1">Add Category</Button>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Color</Label>
+                      <div className="grid grid-cols-10 gap-1.5">
+                        {COLORS.map((color) => (
+                          <button
+                            key={color}
+                            className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${selectedColor === color ? 'border-primary ring-2 ring-primary/30' : 'border-transparent'
+                              }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setSelectedColor(color)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Preview */}
+                    {newCategoryName && (
+                      <div className="flex items-center gap-2 rounded-md border border-dashed p-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                          {(() => {
+                            const PreviewIcon = ICONS[selectedIcon];
+                            return <PreviewIcon className="h-4 w-4" style={{ color: selectedColor }} />;
+                          })()}
+                        </div>
+                        <span className="text-sm font-medium">{newCategoryName}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">Preview</span>
+                      </div>
+                    )}
+
+                    <Button onClick={handleAddCategory} className="mt-1">Add Category</Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog {...dialogProps} />
+    </>
   );
 }

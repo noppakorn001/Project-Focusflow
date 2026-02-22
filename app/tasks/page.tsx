@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { TaskForm } from '@/components/task-form';
 import { CategoryManager } from '@/components/category-manager';
+import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 import { Plus, Search, Filter, Trash2, Edit, CheckCircle2, Circle, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ export default function TasksPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [mounted, setMounted] = useState(false);
+  const { confirm, dialogProps } = useConfirmDialog();
 
   const [now, setNow] = useState(0);
 
@@ -53,10 +55,16 @@ export default function TasksPage() {
   });
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      deleteTask(id);
-      toast.success('Task deleted');
-    }
+    confirm({
+      title: 'Delete Task',
+      description: 'Are you sure you want to delete this task? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+      onConfirm: () => {
+        deleteTask(id);
+        toast.success('Task deleted');
+      },
+    });
   };
 
   const handleStatusChange = (id: string, status: TaskStatus) => {
@@ -226,8 +234,8 @@ export default function TasksPage() {
                           task.priority === 'high'
                             ? 'destructive'
                             : task.priority === 'medium'
-                            ? 'secondary'
-                            : 'outline'
+                              ? 'secondary'
+                              : 'outline'
                         }
                         className={cn(
                           task.priority === 'medium' && 'bg-yellow-500/15 text-yellow-600 hover:bg-yellow-500/25 border-yellow-200'
@@ -236,7 +244,7 @@ export default function TasksPage() {
                         {task.priority}
                       </Badge>
                       {task.deadline && (
-                        <Badge variant="outline" className={cn("flex items-center gap-1", 
+                        <Badge variant="outline" className={cn("flex items-center gap-1",
                           task.deadline < now && task.status !== 'completed' ? "text-destructive border-destructive" : ""
                         )}>
                           <CalendarIcon className="h-3 w-3" />
@@ -282,6 +290,7 @@ export default function TasksPage() {
           })
         )}
       </div>
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Play, Pause, RotateCcw, Coffee, Brain, Armchair } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 // SVG Circular Progress Ring
 function CircularProgress({
@@ -77,24 +77,11 @@ function CircularProgress({
 export default function TimerPage() {
   const { timer, tasks, settings, setTimer, resetTimer, switchMode } = useStore();
   const [mounted, setMounted] = useState(false);
-  const [tick, setTick] = useState(false);
-  const prevTimeLeftRef = useRef(timer.timeLeft);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
-
-  // Detect each tick to trigger pulse animation
-  useEffect(() => {
-    if (timer.isActive && timer.timeLeft !== prevTimeLeftRef.current) {
-      setTick(true);
-      const timeout = setTimeout(() => setTick(false), 150);
-      prevTimeLeftRef.current = timer.timeLeft;
-      return () => clearTimeout(timeout);
-    }
-    prevTimeLeftRef.current = timer.timeLeft;
-  }, [timer.timeLeft, timer.isActive]);
 
   // Calculate total duration for progress ring
   const getTotalDuration = () => {
@@ -187,9 +174,8 @@ export default function TimerPage() {
             <div className="z-10 flex flex-col items-center">
               <div
                 className={cn(
-                  'text-6xl sm:text-7xl font-bold tabular-nums tracking-tighter transition-all duration-150',
-                  timer.isActive ? 'text-foreground' : 'text-muted-foreground',
-                  tick && timer.isActive && 'scale-[1.02]'
+                  'text-6xl sm:text-7xl font-bold tabular-nums tracking-tighter transition-colors duration-500',
+                  timer.isActive ? 'text-foreground' : 'text-muted-foreground'
                 )}
               >
                 {formatTime(timer.timeLeft)}
