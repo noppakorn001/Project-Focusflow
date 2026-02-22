@@ -10,7 +10,7 @@ export const SCOPES = [
 
 export const getOAuth2Client = () => {
   const redirectUri = `${process.env.APP_URL}/api/auth/callback`;
-  
+
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -41,6 +41,7 @@ export const getAuthenticatedClient = async () => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
+        path: '/',
         maxAge: 3600,
       });
       // Update client with new token
