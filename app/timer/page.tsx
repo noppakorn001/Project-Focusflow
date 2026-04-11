@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Play, Pause, RotateCcw, Coffee, Brain, Armchair } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Brain, Armchair, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
@@ -101,7 +101,17 @@ export default function TimerPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const isFocusMode = timer.mode === 'focus';
+  const hasLinkedTask = timer.linkedTaskId !== null;
+
+  // In focus mode, a task must be selected before starting
+  const canStart = !isFocusMode || hasLinkedTask;
+
   const toggleTimer = () => {
+    if (!canStart) {
+      toast.warning('Select a task before starting a focus session.');
+      return;
+    }
     setTimer({ isActive: !timer.isActive });
   };
 
@@ -196,9 +206,11 @@ export default function TimerPage() {
                 size="lg"
                 className={cn(
                   'h-14 w-32 rounded-full text-lg transition-all duration-200',
-                  timer.isActive && 'shadow-lg shadow-primary/25'
+                  timer.isActive && 'shadow-lg shadow-primary/25',
+                  isFocusMode && !hasLinkedTask && 'opacity-50 cursor-not-allowed'
                 )}
                 onClick={toggleTimer}
+                disabled={isFocusMode && !hasLinkedTask}
               >
                 {timer.isActive ? (
                   <>
@@ -223,7 +235,7 @@ export default function TimerPage() {
             {/* Task Link */}
             <div className="mt-2 space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                Link to Task (Optional)
+                {isFocusMode ? 'Select Task (Required for Focus)' : 'Link to Task (Optional)'}
               </label>
               <Select
                 value={timer.linkedTaskId || 'none'}
@@ -233,14 +245,29 @@ export default function TimerPage() {
                   <SelectValue placeholder="Select a task..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  {!isFocusMode && <SelectItem value="none">None</SelectItem>}
                   {activeTasks.map((task) => (
                     <SelectItem key={task.id} value={task.id}>
                       {task.title}
                     </SelectItem>
                   ))}
+                  {activeTasks.length === 0 && (
+                    <SelectItem value="none" disabled>
+                      No active tasks available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
+
+              {/* Inline alert when required */}
+              {isFocusMode && !hasLinkedTask && (
+                <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    A task must be selected to start a focus session. This links your focus time directly to the task.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

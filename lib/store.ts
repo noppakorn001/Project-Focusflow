@@ -25,6 +25,17 @@ export interface Task {
   deadline?: number | null;
   categoryId?: string | null;
   calendarEventId?: string | null;
+  project?: string | null;
+}
+
+export interface FocusReflection {
+  sessionId: string;
+  taskId: string;
+  taskName: string;
+  madeProgress: boolean | null;
+  focusQuality: number; // 1-5
+  observation: string;
+  completedAt: number;
 }
 
 export type TimerMode = 'focus' | 'short-break' | 'long-break';
@@ -50,6 +61,8 @@ export interface AppState {
   settings: TimerSettings;
   syncStatus: 'idle' | 'syncing' | 'error' | 'success';
   lastSynced: number | null;
+  pendingReflection: { taskId: string; taskName: string } | null;
+  sessionReflections: FocusReflection[];
 
   // Actions
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completedAt' | 'timeSpent'>) => void;
@@ -68,6 +81,8 @@ export interface AppState {
   tickTimer: () => void;
   advanceTimer: (seconds: number) => void;
   switchMode: (mode: TimerMode) => void;
+  setPendingReflection: (reflection: { taskId: string; taskName: string } | null) => void;
+  logReflection: (reflection: Omit<FocusReflection, 'sessionId'>) => void;
 
   // For Drive Sync
   loadState: (state: Partial<AppState>) => void;
@@ -102,6 +117,8 @@ export const useStore = create<AppState>()(
       settings: DEFAULT_SETTINGS,
       syncStatus: 'idle',
       lastSynced: null,
+      pendingReflection: null,
+      sessionReflections: [],
 
       addTask: (taskData) =>
         set((state) => ({
@@ -255,6 +272,17 @@ export const useStore = create<AppState>()(
         });
       },
 
+      setPendingReflection: (reflection) =>
+        set({ pendingReflection: reflection }),
+
+      logReflection: (reflectionData) =>
+        set((state) => ({
+          sessionReflections: [
+            ...state.sessionReflections,
+            { ...reflectionData, sessionId: uuidv4() },
+          ],
+        })),
+
       loadState: (loadedState) => {
         // Merge loaded state carefully
         set((state) => ({
@@ -275,7 +303,8 @@ export const useStore = create<AppState>()(
         categories: state.categories,
         settings: state.settings,
         lastSynced: state.lastSynced,
-      }), // Persist tasks, categories, settings, lastSynced to localStorage
+        sessionReflections: state.sessionReflections,
+      }), // Persist tasks, categories, settings, lastSynced, and reflections to localStorage
     }
   )
 );

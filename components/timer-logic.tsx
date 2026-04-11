@@ -5,7 +5,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
 export function TimerLogic() {
-  const { timer, tickTimer, advanceTimer, switchMode, settings, setTimer } = useStore();
+  const { timer, tickTimer, advanceTimer, switchMode, settings, setTimer, setPendingReflection, tasks } = useStore();
   const audioContextRef = useRef<AudioContext | null>(null);
   const lastTickRef = useRef<number>(Date.now());
 
@@ -112,6 +112,14 @@ export function TimerLogic() {
         toast.success(`${timer.mode === 'focus' ? 'Focus Session' : 'Break'} Completed!`);
 
         if (timer.mode === 'focus') {
+          // Trigger reflection modal if a task was linked
+          if (timer.linkedTaskId) {
+            const linkedTask = tasks.find((t) => t.id === timer.linkedTaskId);
+            if (linkedTask) {
+              setPendingReflection({ taskId: linkedTask.id, taskName: linkedTask.title });
+            }
+          }
+
           if (settings.autoStartBreaks) {
             switchMode('short-break');
             setTimer({ isActive: true });
@@ -150,7 +158,7 @@ export function TimerLogic() {
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timer.isActive, timer.timeLeft === 0, timer.mode, settings, tickTimer, advanceTimer, switchMode, setTimer, playCompletionSound]);
+  }, [timer.isActive, timer.timeLeft === 0, timer.mode, settings, tickTimer, advanceTimer, switchMode, setTimer, setPendingReflection, tasks, playCompletionSound]);
 
   return null;
 }

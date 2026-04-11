@@ -7,6 +7,7 @@ import { Play, Pause, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { formatDuration } from '@/lib/utils/format-duration';
 
 export default function Dashboard() {
   const { tasks, timer, setTimer } = useStore();
@@ -73,7 +74,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatTime(tasks.reduce((acc, t) => acc + t.timeSpent, 0))}
+              {formatDuration(tasks.reduce((acc, t) => acc + t.timeSpent, 0))}
             </div>
             <p className="text-xs text-muted-foreground">
               Total time spent

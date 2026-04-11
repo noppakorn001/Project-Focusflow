@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -14,6 +15,7 @@ import {
   RefreshCw,
   CheckCircle2,
 } from 'lucide-react';
+// Timer is used in NAV_ITEMS for the Focus Timer route icon
 import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -47,11 +49,16 @@ export function SidebarContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-8 flex items-center gap-2 px-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Timer className="h-5 w-5" />
-        </div>
-        <span className="text-lg font-bold tracking-tight">FocusFlow</span>
+      <div className="mb-8 flex items-center px-2">
+        <Image
+          src="/Focusflow_Logo.png"
+          alt="FocusFlow"
+          width={140}
+          height={36}
+          style={{ height: 'auto' }}
+          className="object-contain"
+          priority
+        />
       </div>
 
       <nav className="flex-1 space-y-1">

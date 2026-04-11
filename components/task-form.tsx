@@ -36,6 +36,7 @@ const formSchema = z.object({
   tags: z.string().optional(), // Comma separated
   deadline: z.date().optional().nullable(),
   categoryId: z.string().optional(),
+  project: z.string().optional(),
 });
 
 interface TaskFormProps {
@@ -55,6 +56,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       tags: task?.tags.join(', ') || '',
       deadline: task?.deadline ? new Date(task.deadline) : undefined,
       categoryId: task?.categoryId || undefined,
+      project: task?.project || '',
     },
   });
 
@@ -88,6 +90,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       ...values,
       deadline: values.deadline ? values.deadline.getTime() : null,
       categoryId: values.categoryId || null,
+      project: values.project?.trim() || null,
       tags,
     };
 
@@ -118,6 +121,20 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               <FormLabel>Title</FormLabel>
               <FormControl>
                 <Input placeholder="Task title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="project"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. Website Redesign, Q2 Launch" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

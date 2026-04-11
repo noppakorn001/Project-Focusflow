@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore, Task, TaskStatus, TaskPriority } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,10 +18,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskForm } from '@/components/task-form';
 import { CategoryManager } from '@/components/category-manager';
 import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
-import { Plus, Search, Filter, Trash2, Edit, CheckCircle2, Circle, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { ProjectProgressView } from '@/components/project-progress-view';
+import { SmartSortTable } from '@/components/smart-sort-table';
+import { Plus, Search, Filter, Trash2, Edit, CheckCircle2, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -38,12 +42,14 @@ export default function TasksPage() {
   const [mounted, setMounted] = useState(false);
   const { confirm, dialogProps } = useConfirmDialog();
 
+  const nowRef = useRef<number>(0);
   const [now, setNow] = useState(0);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    setNow(Date.now());
+    const ts = Date.now();
+    setNow(ts);
+    nowRef.current = ts;
   }, []);
 
   const filteredTasks = tasks.filter((task) => {
@@ -68,7 +74,8 @@ export default function TasksPage() {
   };
 
   const handleStatusChange = (id: string, status: TaskStatus) => {
-    updateTask(id, { status });
+    // eslint-disable-next-line react-hooks/purity
+    updateTask(id, { status, completedAt: status === 'completed' ? (nowRef.current || Date.now()) : null });
     toast.success(`Task marked as ${status}`);
   };
 
@@ -109,188 +116,266 @@ export default function TasksPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Select
-            value={filterStatus}
-            onValueChange={(v) => setFilterStatus(v as TaskStatus | 'all')}
-          >
-            <SelectTrigger className="w-[140px]">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="todo">To Do</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={filterPriority}
-            onValueChange={(v) => setFilterPriority(v as TaskPriority | 'all')}
-          >
-            <SelectTrigger className="w-[140px]">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={filterCategory}
-            onValueChange={(v) => setFilterCategory(v)}
-          >
-            <SelectTrigger className="w-[140px]">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <Tabs defaultValue="list">
+        <TabsList className="mb-4">
+          <TabsTrigger value="list">List View</TabsTrigger>
+          <TabsTrigger value="smart-sort">Smart Sort</TabsTrigger>
+          <TabsTrigger value="by-project">By Project</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-4">
-        {filteredTasks.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed text-center">
-            <div className="rounded-full bg-muted p-4">
-              <CheckSquare className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="mt-4 text-lg font-semibold">No tasks found</h3>
-            <p className="text-muted-foreground">
-              Create a new task to get started.
-            </p>
-          </div>
-        ) : (
-          filteredTasks.map((task) => {
-            const category = getCategory(task.categoryId);
-            return (
-              <div
-                key={task.id}
-                className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center md:justify-between"
-              >
-                <div className="flex items-start gap-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      'mt-1 h-6 w-6 rounded-full border-2 p-0 hover:bg-transparent',
-                      task.status === 'completed'
-                        ? 'border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-                        : 'border-muted-foreground text-transparent hover:border-primary'
-                    )}
-                    onClick={() =>
-                      handleStatusChange(
-                        task.id,
-                        task.status === 'completed' ? 'todo' : 'completed'
-                      )
-                    }
+        {/* Shared filter bar for List and Smart Sort tabs */}
+        <TabsContent value="list" className="space-y-4 mt-0">
+          <FilterBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            filterPriority={filterPriority}
+            setFilterPriority={setFilterPriority}
+            filterCategory={filterCategory}
+            setFilterCategory={setFilterCategory}
+            categories={categories}
+          />
+
+          <div className="grid gap-4">
+            {filteredTasks.length === 0 ? (
+              <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed text-center">
+                <div className="rounded-full bg-muted p-4">
+                  <CheckSquare className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">No tasks found</h3>
+                <p className="text-muted-foreground">
+                  Create a new task to get started.
+                </p>
+              </div>
+            ) : (
+              filteredTasks.map((task) => {
+                const category = getCategory(task.categoryId);
+                return (
+                  <div
+                    key={task.id}
+                    className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center md:justify-between"
                   >
-                    <CheckCircle2 className="h-4 w-4" />
-                  </Button>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3
+                    <div className="flex items-start gap-4">
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className={cn(
-                          'font-semibold leading-none',
-                          task.status === 'completed' && 'text-muted-foreground line-through'
+                          'mt-1 h-6 w-6 rounded-full border-2 p-0 hover:bg-transparent',
+                          task.status === 'completed'
+                            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+                            : 'border-muted-foreground text-transparent hover:border-primary'
                         )}
-                      >
-                        {task.title}
-                      </h3>
-                      {category && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 gap-1" style={{ borderColor: category.color, color: category.color }}>
-                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: category.color }} />
-                          {category.name}
-                        </Badge>
-                      )}
-                    </div>
-                    {task.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {task.description}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      <Badge
-                        variant={
-                          task.priority === 'high'
-                            ? 'destructive'
-                            : task.priority === 'medium'
-                              ? 'secondary'
-                              : 'outline'
+                        onClick={() =>
+                          handleStatusChange(
+                            task.id,
+                            task.status === 'completed' ? 'todo' : 'completed'
+                          )
                         }
-                        className={cn(
-                          task.priority === 'medium' && 'bg-yellow-500/15 text-yellow-600 hover:bg-yellow-500/25 border-yellow-200'
-                        )}
                       >
-                        {task.priority}
-                      </Badge>
-                      {task.deadline && (
-                        <Badge variant="outline" className={cn("flex items-center gap-1",
-                          task.deadline < now && task.status !== 'completed' ? "text-destructive border-destructive" : ""
-                        )}>
-                          <CalendarIcon className="h-3 w-3" />
-                          {format(task.deadline, 'MMM d')}
-                        </Badge>
-                      )}
-                      {task.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {task.timeSpent > 0 && (
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {Math.floor(task.timeSpent / 60)}m
-                        </Badge>
-                      )}
+                        <CheckCircle2 className="h-4 w-4" />
+                      </Button>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className={cn(
+                              'font-semibold leading-none',
+                              task.status === 'completed' && 'text-muted-foreground line-through'
+                            )}
+                          >
+                            {task.title}
+                          </h3>
+                          {category && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 gap-1" style={{ borderColor: category.color, color: category.color }}>
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: category.color }} />
+                              {category.name}
+                            </Badge>
+                          )}
+                          {task.project && (
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5">
+                              {task.project}
+                            </Badge>
+                          )}
+                        </div>
+                        {task.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {task.description}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Badge
+                            variant={
+                              task.priority === 'high'
+                                ? 'destructive'
+                                : task.priority === 'medium'
+                                  ? 'secondary'
+                                  : 'outline'
+                            }
+                            className={cn(
+                              task.priority === 'medium' && 'bg-yellow-500/15 text-yellow-600 hover:bg-yellow-500/25 border-yellow-200'
+                            )}
+                          >
+                            {task.priority}
+                          </Badge>
+                          {task.deadline && (
+                            <Badge variant="outline" className={cn("flex items-center gap-1",
+                              task.deadline < now && task.status !== 'completed' ? "text-destructive border-destructive" : ""
+                            )}>
+                              <CalendarIcon className="h-3 w-3" />
+                              {format(task.deadline, 'MMM d')}
+                            </Badge>
+                          )}
+                          {task.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {task.timeSpent > 0 && (
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {Math.floor(task.timeSpent / 60)}m
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 md:self-start">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setEditingTask(task);
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => handleDelete(task.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 md:self-start">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setEditingTask(task);
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => handleDelete(task.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="smart-sort" className="space-y-4 mt-0">
+          <FilterBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            filterPriority={filterPriority}
+            setFilterPriority={setFilterPriority}
+            filterCategory={filterCategory}
+            setFilterCategory={setFilterCategory}
+            categories={categories}
+          />
+          <SmartSortTable tasks={filteredTasks} />
+        </TabsContent>
+
+        <TabsContent value="by-project" className="mt-0">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Project Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProjectProgressView tasks={tasks} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
       <ConfirmDialog {...dialogProps} />
+    </div>
+  );
+}
+
+// Shared filter bar component
+interface FilterBarProps {
+  searchQuery: string;
+  setSearchQuery: (v: string) => void;
+  filterStatus: TaskStatus | 'all';
+  setFilterStatus: (v: TaskStatus | 'all') => void;
+  filterPriority: TaskPriority | 'all';
+  setFilterPriority: (v: TaskPriority | 'all') => void;
+  filterCategory: string;
+  setFilterCategory: (v: string) => void;
+  categories: { id: string; name: string }[];
+}
+
+function FilterBar({
+  searchQuery, setSearchQuery,
+  filterStatus, setFilterStatus,
+  filterPriority, setFilterPriority,
+  filterCategory, setFilterCategory,
+  categories,
+}: FilterBarProps) {
+  return (
+    <div className="flex flex-col gap-4 md:flex-row md:items-center">
+      <div className="relative flex-1">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search tasks..."
+          className="pl-8"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Select
+          value={filterStatus}
+          onValueChange={(v) => setFilterStatus(v as TaskStatus | 'all')}
+        >
+          <SelectTrigger className="w-[140px]">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="todo">To Do</SelectItem>
+            <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={filterPriority}
+          onValueChange={(v) => setFilterPriority(v as TaskPriority | 'all')}
+        >
+          <SelectTrigger className="w-[140px]">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Priority" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={filterCategory}
+          onValueChange={(v) => setFilterCategory(v)}
+        >
+          <SelectTrigger className="w-[140px]">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

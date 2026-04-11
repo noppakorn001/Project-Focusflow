@@ -4,6 +4,7 @@ import { Sidebar, SidebarContent } from '@/components/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TimerLogic } from '@/components/timer-logic';
+import { FocusReflectionModal } from '@/components/focus-reflection-modal';
 import { SyncManager } from '@/components/sync-manager';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className="bg-background text-foreground">
         <TooltipProvider>
           <SyncManager />
@@ -50,6 +51,7 @@ export default function RootLayout({
 
               <main className="flex-1 overflow-y-auto bg-secondary/10 p-4 md:p-8">
                 <TimerLogic />
+                <FocusReflectionModal />
                 {children}
               </main>
             </div>
