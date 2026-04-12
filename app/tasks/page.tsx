@@ -33,7 +33,7 @@ import { toast } from 'sonner';
 
 export default function TasksPage() {
   const { tasks, updateTask, deleteTask, categories } = useStore();
-  const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
+  const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('todo');
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<string | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
