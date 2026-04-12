@@ -1,6 +1,6 @@
 # FocusFlow
 
-![FocusFlow Cover](https://via.placeholder.com/1200x630/fafafa/171717?text=FocusFlow+Productivity+Suite)
+![FocusFlow Cover](Focusflow_Logo.png)
 
 FocusFlow is a next-generation productivity suite designed for modern knowledge workers and developers. Built with a pristine, Vercel-inspired minimal aesthetic, it seamlessly merges an advanced Pomodoro timer with intelligent task management and rich visual analytics.
 
