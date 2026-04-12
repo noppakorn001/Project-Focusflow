@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { Task, TaskPriority } from '@/lib/store';
-import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -11,46 +10,39 @@ import {
 import { formatDuration } from '@/lib/utils/format-duration';
 import { format } from 'date-fns';
 import { ArrowDown, ArrowUp, ArrowUpDown, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 type SortKey = 'smartScore' | 'deadline' | 'priority' | 'status';
 type SortDir = 'asc' | 'desc';
 
 const PRIORITY_SCORE: Record<TaskPriority, number> = {
-  high: 3,
-  medium: 2,
-  low: 1,
+  high: 3, medium: 2, low: 1,
 };
 
 const STATUS_ORDER: Record<string, number> = {
-  'in-progress': 0,
-  'todo': 1,
-  'completed': 2,
+  'in-progress': 0, 'todo': 1, 'completed': 2,
 };
 
 function calcSmartScore(task: Task, now: number): number {
   const priorityScore = PRIORITY_SCORE[task.priority];
   const focusMinutes = task.timeSpent / 60;
-
   let remainingDays: number;
   if (task.deadline) {
     const msRemaining = task.deadline - now;
     remainingDays = Math.max(0.1, msRemaining / (1000 * 60 * 60 * 24));
   } else {
-    // No deadline: treat as very low urgency so it sorts below deadline tasks
     remainingDays = 999;
   }
-
-  // Higher priority + fewer remaining days + more focus invested = higher score
   return priorityScore * (1 / remainingDays) * (1 + focusMinutes);
 }
 
 function SortIcon({ sortKey, current, dir }: { sortKey: SortKey; current: SortKey; dir: SortDir }) {
-  if (current !== sortKey) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
-  return dir === 'asc'
-    ? <ArrowUp className="h-3 w-3" />
-    : <ArrowDown className="h-3 w-3" />;
+  const style = { width: '10px', height: '10px', color: current === sortKey ? '#0a72ef' : '#808080' };
+  if (current !== sortKey) return <ArrowUpDown style={style} />;
+  return dir === 'asc' ? <ArrowUp style={style} /> : <ArrowDown style={style} />;
 }
+
+const priorityColor: Record<string, string> = { high: '#ff5b4f', medium: '#de1d8d', low: '#0a72ef' };
+const priorityBg: Record<string, string> = { high: '#fff0ef', medium: '#fdf0f8', low: '#ebf5ff' };
 
 interface SmartSortTableProps {
   tasks: Task[];
@@ -76,18 +68,13 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
   const sorted = useMemo(() => {
     return [...tasks].sort((a, b) => {
       let comparison = 0;
-
       switch (sortKey) {
         case 'smartScore': {
-          const scoreA = calcSmartScore(a, now);
-          const scoreB = calcSmartScore(b, now);
-          comparison = scoreB - scoreA;
+          comparison = calcSmartScore(b, now) - calcSmartScore(a, now);
           break;
         }
         case 'deadline': {
-          const dA = a.deadline ?? Infinity;
-          const dB = b.deadline ?? Infinity;
-          comparison = dA - dB;
+          comparison = (a.deadline ?? Infinity) - (b.deadline ?? Infinity);
           break;
         }
         case 'priority': {
@@ -99,181 +86,269 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
           break;
         }
       }
-
       return sortDir === 'asc' ? -comparison : comparison;
     });
   }, [tasks, sortKey, sortDir, now]);
 
   if (tasks.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-muted-foreground text-sm">
-        No tasks to display.
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '120px',
+          background: '#fafafa',
+          boxShadow: 'rgba(0,0,0,0.06) 0px 0px 0px 1px',
+          borderRadius: '8px',
+        }}
+      >
+        <p style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '13px', color: '#808080' }}>
+          No tasks to display.
+        </p>
       </div>
     );
   }
 
+  const thStyle = {
+    padding: '10px 14px',
+    textAlign: 'left' as const,
+    fontFamily: "'Geist Mono', monospace",
+    fontSize: '11px',
+    fontWeight: 500,
+    color: '#808080',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase' as const,
+    background: '#fafafa',
+    borderBottom: '1px solid #ebebeb',
+    whiteSpace: 'nowrap' as const,
+  };
+
+  const tdStyle = {
+    padding: '12px 14px',
+    borderBottom: '1px solid #ebebeb',
+    fontFamily: "'Geist', Arial, sans-serif",
+    fontSize: '14px',
+    verticalAlign: 'middle' as const,
+  };
+
   return (
-    <div className="w-full overflow-x-auto rounded-lg border">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b bg-muted/40">
-            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Title</th>
-            <th className="hidden px-4 py-3 text-left font-medium text-muted-foreground sm:table-cell">Project</th>
-            <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-              <button
-                onClick={() => handleSort('priority')}
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
-              >
-                Priority
-                <SortIcon sortKey="priority" current={sortKey} dir={sortDir} />
-              </button>
-            </th>
-            <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-              <button
-                onClick={() => handleSort('deadline')}
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
-              >
-                Deadline
-                <SortIcon sortKey="deadline" current={sortKey} dir={sortDir} />
-              </button>
-            </th>
-            <th className="hidden px-3 py-3 text-left font-medium text-muted-foreground md:table-cell">
-              Focus Time
-            </th>
-            <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-              <button
-                onClick={() => handleSort('status')}
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
-              >
-                Status
-                <SortIcon sortKey="status" current={sortKey} dir={sortDir} />
-              </button>
-            </th>
-            <th className="px-3 py-3 text-right font-medium text-muted-foreground">
-              <button
-                onClick={() => handleSort('smartScore')}
-                className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors"
-              >
-                Smart Score
-                <SortIcon sortKey="smartScore" current={sortKey} dir={sortDir} />
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((task, i) => {
-            const score = calcSmartScore(task, now);
-            const remainingDays = task.deadline
-              ? Math.max(0, Math.ceil((task.deadline - now) / (1000 * 60 * 60 * 24)))
-              : null;
-            const focusMinutes = Math.round(task.timeSpent / 60);
-            const isOverdue = task.deadline && task.deadline < now && task.status !== 'completed';
+    <div
+      style={{
+        background: '#ffffff',
+        boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        border: 'none',
+      }}
+    >
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={thStyle}>Title</th>
+              <th style={{ ...thStyle, display: 'none' }} className="sm-show">Project</th>
+              <th style={thStyle}>
+                <button
+                  onClick={() => handleSort('priority')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'priority' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
+                >
+                  Priority <SortIcon sortKey="priority" current={sortKey} dir={sortDir} />
+                </button>
+              </th>
+              <th style={thStyle}>
+                <button
+                  onClick={() => handleSort('deadline')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'deadline' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
+                >
+                  Deadline <SortIcon sortKey="deadline" current={sortKey} dir={sortDir} />
+                </button>
+              </th>
+              <th style={thStyle}>
+                <button
+                  onClick={() => handleSort('status')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'status' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
+                >
+                  Status <SortIcon sortKey="status" current={sortKey} dir={sortDir} />
+                </button>
+              </th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>
+                <button
+                  onClick={() => handleSort('smartScore')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'smartScore' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0, marginLeft: 'auto' }}
+                >
+                  Smart Score <SortIcon sortKey="smartScore" current={sortKey} dir={sortDir} />
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((task) => {
+              const score = calcSmartScore(task, now);
+              const remainingDays = task.deadline
+                ? Math.max(0, Math.ceil((task.deadline - now) / (1000 * 60 * 60 * 24)))
+                : null;
+              const focusMinutes = Math.round(task.timeSpent / 60);
+              const isOverdue = task.deadline && task.deadline < now && task.status !== 'completed';
 
-            return (
-              <tr
-                key={task.id}
-                className={cn(
-                  'border-b transition-colors last:border-0',
-                  i % 2 === 0 ? 'bg-background' : 'bg-muted/20',
-                  'hover:bg-muted/40'
-                )}
-              >
-                {/* Title */}
-                <td className="px-4 py-3 font-medium max-w-[180px] truncate">
-                  <span className={cn(task.status === 'completed' && 'line-through text-muted-foreground')}>
-                    {task.title}
-                  </span>
-                </td>
+              const statusConfig = {
+                completed: { bg: '#ebf5ff', color: '#0068d6', label: 'Done' },
+                'in-progress': { bg: '#fdf0f8', color: '#de1d8d', label: 'In Progress' },
+                todo: { bg: '#fafafa', color: '#666666', label: 'To Do' },
+              };
+              const sc = statusConfig[task.status] || statusConfig.todo;
 
-                {/* Project */}
-                <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
-                  {task.project || <span className="opacity-40">—</span>}
-                </td>
-
-                {/* Priority */}
-                <td className="px-3 py-3">
-                  <Badge
-                    variant={
-                      task.priority === 'high'
-                        ? 'destructive'
-                        : task.priority === 'medium'
-                        ? 'secondary'
-                        : 'outline'
-                    }
-                    className={cn(
-                      'capitalize text-xs',
-                      task.priority === 'medium' &&
-                        'bg-yellow-500/15 text-yellow-600 hover:bg-yellow-500/25 border-yellow-200'
-                    )}
-                  >
-                    {task.priority}
-                  </Badge>
-                </td>
-
-                {/* Deadline */}
-                <td className="px-3 py-3 text-xs">
-                  {task.deadline ? (
-                    <span className={cn(isOverdue && 'text-destructive font-medium')}>
-                      {format(task.deadline, 'MMM d')}
-                      {remainingDays !== null && remainingDays <= 3 && task.status !== 'completed' && (
-                        <span className="ml-1 text-muted-foreground">
-                          ({remainingDays === 0 ? 'today' : `${remainingDays}d`})
-                        </span>
-                      )}
+              return (
+                <tr
+                  key={task.id}
+                  style={{ transition: 'background 0.1s ease' }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+                >
+                  {/* Title */}
+                  <td style={{ ...tdStyle, maxWidth: '200px' }}>
+                    <span
+                      style={{
+                        fontWeight: 500,
+                        color: task.status === 'completed' ? '#808080' : '#171717',
+                        textDecoration: task.status === 'completed' ? 'line-through' : 'none',
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {task.title}
                     </span>
-                  ) : (
-                    <span className="opacity-40">—</span>
-                  )}
-                </td>
-
-                {/* Focus Time */}
-                <td className="hidden px-3 py-3 text-xs text-muted-foreground md:table-cell">
-                  {task.timeSpent > 0 ? formatDuration(task.timeSpent) : <span className="opacity-40">—</span>}
-                </td>
-
-                {/* Status */}
-                <td className="px-3 py-3">
-                  <span
-                    className={cn(
-                      'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                      task.status === 'completed'
-                        ? 'bg-emerald-500/15 text-emerald-600'
-                        : task.status === 'in-progress'
-                        ? 'bg-blue-500/15 text-blue-600'
-                        : 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    {task.status === 'in-progress' ? 'In Progress' : task.status === 'todo' ? 'To Do' : 'Done'}
-                  </span>
-                </td>
-
-                {/* Smart Score with tooltip */}
-                <td className="px-3 py-3 text-right">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="inline-flex items-center justify-end gap-1 cursor-default tabular-nums font-mono text-xs">
-                        {score.toFixed(3)}
-                        <Info className="h-3 w-3 text-muted-foreground" />
+                    {task.project && (
+                      <span style={{ fontSize: '12px', color: '#808080', display: 'block', marginTop: '2px' }}>
+                        {task.project}
                       </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="max-w-[220px] text-xs space-y-1">
-                      <p className="font-semibold">Smart Score Breakdown</p>
-                      <p>Priority: {PRIORITY_SCORE[task.priority]} ({task.priority})</p>
-                      <p>
-                        Urgency: 1 / {remainingDays !== null ? `${remainingDays.toFixed(1)} days` : '999 (no deadline)'}
-                      </p>
-                      <p>Focus invested: {focusMinutes} min</p>
-                      <p className="text-muted-foreground pt-1 border-t border-border mt-1">
-                        Formula: Priority x (1 / Remaining Days) x (1 + Focus Minutes)
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    )}
+                  </td>
+
+                  {/* Priority */}
+                  <td style={tdStyle}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        background: priorityBg[task.priority] || '#fafafa',
+                        color: priorityColor[task.priority] || '#666666',
+                        borderRadius: '9999px',
+                        padding: '2px 8px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        fontFamily: "'Geist Mono', monospace",
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {task.priority}
+                    </span>
+                  </td>
+
+                  {/* Deadline */}
+                  <td style={tdStyle}>
+                    {task.deadline ? (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontFamily: "'Geist Mono', monospace",
+                          fontSize: '12px',
+                          color: isOverdue ? '#ff5b4f' : '#4d4d4d',
+                          fontWeight: isOverdue ? 600 : 400,
+                        }}
+                      >
+                        {format(task.deadline, 'MMM d')}
+                        {remainingDays !== null && remainingDays <= 3 && task.status !== 'completed' && (
+                          <span style={{ color: '#808080' }}>
+                            ({remainingDays === 0 ? 'today' : `${remainingDays}d`})
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#cccccc', fontFamily: "'Geist Mono', monospace", fontSize: '12px' }}>—</span>
+                    )}
+                  </td>
+
+                  {/* Status */}
+                  <td style={tdStyle}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        background: sc.bg,
+                        color: sc.color,
+                        borderRadius: '9999px',
+                        padding: '2px 8px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        fontFamily: "'Geist Mono', monospace",
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {sc.label}
+                    </span>
+                  </td>
+
+                  {/* Smart Score */}
+                  <td style={{ ...tdStyle, textAlign: 'right' }}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            gap: '4px',
+                            cursor: 'default',
+                            background: '#ebf5ff',
+                            color: '#0068d6',
+                            borderRadius: '9999px',
+                            padding: '2px 8px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            fontFamily: "'Geist Mono', monospace",
+                          }}
+                        >
+                          {score.toFixed(3)}
+                          <Info style={{ width: '10px', height: '10px' }} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="left"
+                        style={{
+                          background: '#ffffff',
+                          boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.08) 0px 8px 16px',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '12px 16px',
+                          maxWidth: '220px',
+                        }}
+                      >
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '13px', fontWeight: 600, color: '#171717', margin: '0 0 8px 0' }}>
+                          Smart Score
+                        </p>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: '#4d4d4d', margin: '2px 0' }}>Priority: {PRIORITY_SCORE[task.priority]} ({task.priority})</p>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: '#4d4d4d', margin: '2px 0' }}>
+                          Urgency: 1 / {remainingDays !== null ? `${remainingDays.toFixed(1)}d` : '999 (no deadline)'}
+                        </p>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: '#4d4d4d', margin: '2px 0' }}>Focus: {focusMinutes} min</p>
+                        <p style={{ fontFamily: "'Geist Mono', monospace", fontSize: '11px', color: '#808080', margin: '8px 0 0 0', paddingTop: '8px', borderTop: '1px solid #ebebeb' }}>
+                          Priority × (1/Days) × (1+Focus)
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

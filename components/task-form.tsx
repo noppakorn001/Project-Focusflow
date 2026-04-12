@@ -110,63 +110,102 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     onSuccess?.();
   }
 
+  const labelStyle = {
+    display: 'block',
+    fontSize: '13px',
+    fontWeight: 500,
+    color: '#171717',
+    marginBottom: '6px',
+    fontFamily: "'Geist', Arial, sans-serif",
+  };
+
+  const inputBaseStyle = {
+    width: '100%',
+    background: '#ffffff',
+    boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '8px 12px',
+    fontFamily: "'Geist', Arial, sans-serif",
+    fontSize: '14px',
+    color: '#171717',
+    outline: 'none',
+    transition: 'box-shadow 0.15s ease',
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Title */}
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <label style={labelStyle}>Title</label>
               <FormControl>
-                <Input placeholder="Task title" {...field} />
+                <input
+                  placeholder="Task title"
+                  {...field}
+                  style={inputBaseStyle}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage style={{ fontSize: '12px', color: '#ff5b4f', marginTop: '4px' }} />
             </FormItem>
           )}
         />
 
+        {/* Project */}
         <FormField
           control={form.control}
           name="project"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+              <label style={labelStyle}>
+                Project <span style={{ fontWeight: 400, color: '#808080' }}>(Optional)</span>
+              </label>
               <FormControl>
-                <Input placeholder="e.g. Website Redesign, Q2 Launch" {...field} />
+                <input
+                  placeholder="e.g. Website Redesign, Q2 Launch"
+                  {...field}
+                  style={inputBaseStyle}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
-        
-        <div className="grid grid-cols-2 gap-4">
+
+        {/* Category + Priority */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <FormField
             control={form.control}
             name="categoryId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        <div className="flex items-center gap-2">
-                           {/* We could render the icon here if we map string to component */}
-                           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: category.color }} />
-                           {category.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
+                <label style={labelStyle}>Category</label>
+                <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="border-0 shadow-none bg-white" style={{ boxShadow: 'none', border: 'none' }}>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: category.color, flexShrink: 0 }} />
+                            {category.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </FormItem>
             )}
           />
@@ -176,48 +215,51 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
             name="priority"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
+                <label style={labelStyle}>Priority</label>
+                <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="border-0 shadow-none bg-white" style={{ boxShadow: 'none', border: 'none' }}>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </FormItem>
             )}
           />
         </div>
 
+        {/* Deadline */}
         <FormField
           control={form.control}
           name="deadline"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Deadline</FormLabel>
+            <FormItem style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={labelStyle}>Deadline</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
+                    <button
+                      type="button"
+                      style={{
+                        ...inputBaseStyle,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        textAlign: 'left',
+                        color: field.value ? '#171717' : '#808080',
+                        cursor: 'pointer',
+                      }}
                     >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
+                      {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                      <CalendarIcon style={{ width: '14px', height: '14px', color: '#808080', flexShrink: 0 }} />
+                    </button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -225,54 +267,102 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                     mode="single"
                     selected={field.value || undefined}
                     onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
-              <FormMessage />
+              <FormMessage style={{ fontSize: '12px', color: '#ff5b4f', marginTop: '4px' }} />
             </FormItem>
           )}
         />
 
+        {/* Description */}
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <label style={labelStyle}>Description</label>
               <FormControl>
-                <Textarea placeholder="Task description" {...field} />
+                <textarea
+                  placeholder="Task description"
+                  rows={3}
+                  {...field}
+                  style={{ ...inputBaseStyle, resize: 'none' }}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
-        
+
+        {/* Tags */}
         <FormField
           control={form.control}
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tags (comma separated)</FormLabel>
+              <label style={labelStyle}>Tags <span style={{ fontWeight: 400, color: '#808080' }}>(comma separated)</span></label>
               <FormControl>
-                <Input placeholder="work, personal, urgent" {...field} />
+                <input
+                  placeholder="work, personal, urgent"
+                  {...field}
+                  style={inputBaseStyle}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
-        
-        <div className="flex gap-2">
-          <Button type="submit" className="flex-1">
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          <button
+            type="submit"
+            style={{
+              flex: 1,
+              background: '#171717',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '10px 16px',
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: "'Geist', Arial, sans-serif",
+              cursor: 'pointer',
+              transition: 'opacity 0.15s ease',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
+          >
             {task ? 'Update Task' : 'Create Task'}
-          </Button>
+          </button>
           {task && task.deadline && (
-             <Button type="button" variant="outline" onClick={() => handleAddToCalendar(task)}>
-               Add to Calendar
-             </Button>
+            <button
+              type="button"
+              onClick={() => handleAddToCalendar(task)}
+              style={{
+                background: '#ffffff',
+                color: '#171717',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '10px 14px',
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: "'Geist', Arial, sans-serif",
+                cursor: 'pointer',
+                boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                transition: 'background 0.15s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+            >
+              Add to Calendar
+            </button>
           )}
         </div>
       </form>

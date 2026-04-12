@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import {
   LayoutDashboard,
@@ -15,9 +14,7 @@ import {
   RefreshCw,
   CheckCircle2,
 } from 'lucide-react';
-// Timer is used in NAV_ITEMS for the Focus Timer route icon
 import { useStore } from '@/lib/store';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const NAV_ITEMS = [
@@ -34,34 +31,26 @@ export function SidebarContent() {
 
   const handleManualSync = async () => {
     if (syncStatus === 'syncing') return;
-    
-    // Trigger a manual sync by updating a timestamp or calling an API
-    // Since SyncManager handles auto-sync on state change, we can just notify the user
-    // or force a re-check. For now, let's just show status.
-    // Ideally, we'd expose a `syncNow` function from SyncManager via context or store,
-    // but for simplicity, we'll just link to settings where they can connect/disconnect.
-    
-    // If we want to force sync, we could update `lastSynced` in store to 0 to trigger effect?
-    // But SyncManager logic is: auto-syncs on change.
-    
     toast.info('Sync is handled automatically. Check Settings for connection status.');
   };
 
   return (
     <div className="flex h-full flex-col">
+      {/* Logo */}
       <div className="mb-8 flex items-center px-2">
         <Image
           src="/Focusflow_Logo.png"
           alt="FocusFlow"
-          width={140}
-          height={36}
+          width={130}
+          height={32}
           style={{ height: 'auto' }}
           className="object-contain"
           priority
         />
       </div>
 
-      <nav className="flex-1 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -69,48 +58,97 @@ export function SidebarContent() {
             <Link
               key={item.href}
               href={item.href}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                borderRadius: '8px',
+                padding: '8px 10px',
+                fontSize: '14px',
+                fontWeight: isActive ? 600 : 500,
+                letterSpacing: isActive ? '-0.14px' : 'normal',
+                color: isActive ? '#171717' : '#666666',
+                background: isActive ? '#f3f3f3' : 'transparent',
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+                boxShadow: isActive ? 'rgb(235,235,235) 0px 0px 0px 1px' : 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.background = '#fafafa';
+                  (e.currentTarget as HTMLElement).style.color = '#171717';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.color = '#666666';
+                }
+              }}
             >
-              <Icon className="h-4 w-4" />
+              <Icon
+                style={{
+                  width: '15px',
+                  height: '15px',
+                  flexShrink: 0,
+                  color: isActive ? '#171717' : '#808080',
+                }}
+              />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto border-t pt-4">
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full justify-start gap-2",
-            syncStatus === 'error' && "border-destructive text-destructive hover:text-destructive"
-          )}
+      {/* Sync Status */}
+      <div
+        className="mt-auto pt-4"
+        style={{ borderTop: '1px solid #ebebeb' }}
+      >
+        <button
           onClick={handleManualSync}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            width: '100%',
+            padding: '8px 10px',
+            borderRadius: '8px',
+            background: '#ffffff',
+            boxShadow: syncStatus === 'error'
+              ? 'rgba(255,91,79,0.3) 0px 0px 0px 1px'
+              : 'rgb(235,235,235) 0px 0px 0px 1px',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
         >
           {syncStatus === 'syncing' ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
+            <RefreshCw style={{ width: '14px', height: '14px', color: '#0a72ef', animation: 'spin 1s linear infinite' }} />
           ) : syncStatus === 'error' ? (
-            <CloudOff className="h-4 w-4" />
+            <CloudOff style={{ width: '14px', height: '14px', color: '#ff5b4f' }} />
           ) : syncStatus === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 style={{ width: '14px', height: '14px', color: '#0a72ef' }} />
           ) : (
-            <Cloud className="h-4 w-4" />
+            <Cloud style={{ width: '14px', height: '14px', color: '#808080' }} />
           )}
-          <span className="text-xs">
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: 500,
+              color: syncStatus === 'error' ? '#ff5b4f' : '#666666',
+              fontFamily: "'Geist Mono', monospace",
+            }}
+          >
             {syncStatus === 'syncing'
-              ? 'Syncing...'
+              ? 'SYNCING...'
               : syncStatus === 'error'
-              ? 'Sync Error (Retry)'
+              ? 'SYNC ERROR'
               : syncStatus === 'success'
-              ? 'Cloud Synced'
-              : 'Sync Idle'}
+              ? 'CLOUD SYNCED'
+              : 'SYNC IDLE'}
           </span>
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -118,7 +156,13 @@ export function SidebarContent() {
 
 export function Sidebar() {
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-background px-4 py-6">
+    <div
+      className="flex h-screen w-64 flex-col px-4 py-6"
+      style={{
+        background: '#ffffff',
+        boxShadow: '1px 0 0 0 rgba(0,0,0,0.08)',
+      }}
+    >
       <SidebarContent />
     </div>
   );

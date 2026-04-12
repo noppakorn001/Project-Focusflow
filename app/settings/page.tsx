@@ -1,18 +1,54 @@
 'use client';
 
 import { useStore } from '@/lib/store';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { Cloud, LogOut, Moon, Sun } from 'lucide-react';
 import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 
+const inputStyle = {
+  width: '100%',
+  background: '#ffffff',
+  boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+  border: 'none',
+  borderRadius: '6px',
+  padding: '8px 12px',
+  fontFamily: "'Geist', Arial, sans-serif",
+  fontSize: '14px',
+  fontWeight: 400,
+  color: '#171717',
+  outline: 'none',
+  transition: 'box-shadow 0.15s ease',
+};
+
+const cardStyle = {
+  background: '#ffffff',
+  boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
+  borderRadius: '8px',
+  padding: '28px',
+  border: 'none',
+};
+
+const sectionTitleStyle = {
+  fontFamily: "'Geist', Arial, sans-serif",
+  fontSize: '18px',
+  fontWeight: 600,
+  letterSpacing: '-0.36px',
+  color: '#171717',
+  margin: '0 0 4px 0',
+};
+
+const sectionDescStyle = {
+  fontFamily: "'Geist', Arial, sans-serif",
+  fontSize: '13px',
+  color: '#666666',
+  margin: 0,
+};
+
 export default function SettingsPage() {
-  const { settings, updateSettings, syncStatus, setSyncStatus } = useStore();
+  const { settings, updateSettings, setSyncStatus } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { confirm, dialogProps } = useConfirmDialog();
@@ -36,11 +72,7 @@ export default function SettingsPage() {
       const left = window.screen.width / 2 - width / 2;
       const top = window.screen.height / 2 - height / 2;
 
-      const popup = window.open(
-        url,
-        'google_oauth',
-        `width=${width},height=${height},left=${left},top=${top}`
-      );
+      const popup = window.open(url, 'google_oauth', `width=${width},height=${height},left=${left},top=${top}`);
 
       if (!popup) {
         toast.error('Please allow popups to connect Google Drive');
@@ -52,8 +84,7 @@ export default function SettingsPage() {
           setIsAuthenticated(true);
           toast.success('Connected to Google Drive');
           window.removeEventListener('message', handleMessage);
-          // Trigger initial sync
-          setSyncStatus('idle'); // Will trigger sidebar effect
+          setSyncStatus('idle');
         }
       };
 
@@ -83,119 +114,248 @@ export default function SettingsPage() {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    // Ideally persist this in localStorage or store
   };
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Customize your experience.</p>
+    <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '40px' }}>
+        <h1
+          style={{
+            fontFamily: "'Geist', Arial, sans-serif",
+            fontSize: '40px',
+            fontWeight: 600,
+            letterSpacing: '-2.4px',
+            lineHeight: 1.1,
+            color: '#171717',
+            margin: 0,
+          }}
+        >
+          Settings
+        </h1>
+        <p style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '18px', fontWeight: 400, color: '#4d4d4d', marginTop: '8px' }}>
+          Customize your experience.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Timer Settings</CardTitle>
-          <CardDescription>Adjust focus and break durations.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="focus-duration">Focus Duration (min)</Label>
-              <Input
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Timer Settings */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={sectionTitleStyle}>Timer Settings</h2>
+            <p style={sectionDescStyle}>Adjust focus and break durations.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            <div>
+              <label
+                htmlFor="focus-duration"
+                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#171717', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
+              >
+                Focus (min)
+              </label>
+              <input
                 id="focus-duration"
                 type="number"
                 value={settings.focusDuration}
                 onChange={(e) => updateSettings({ focusDuration: Number(e.target.value) })}
+                style={inputStyle}
+                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="short-break">Short Break (min)</Label>
-              <Input
+            <div>
+              <label
+                htmlFor="short-break"
+                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#171717', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
+              >
+                Short Break (min)
+              </label>
+              <input
                 id="short-break"
                 type="number"
                 value={settings.shortBreakDuration}
                 onChange={(e) => updateSettings({ shortBreakDuration: Number(e.target.value) })}
+                style={inputStyle}
+                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="long-break">Long Break (min)</Label>
-              <Input
+            <div>
+              <label
+                htmlFor="long-break"
+                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#171717', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
+              >
+                Long Break (min)
+              </label>
+              <input
                 id="long-break"
                 type="number"
                 value={settings.longBreakDuration}
                 onChange={(e) => updateSettings({ longBreakDuration: Number(e.target.value) })}
+                style={inputStyle}
+                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between space-x-2">
-            <Label htmlFor="auto-start-breaks">Auto-start Breaks</Label>
-            <Switch
-              id="auto-start-breaks"
-              checked={settings.autoStartBreaks}
-              onCheckedChange={(checked) => updateSettings({ autoStartBreaks: checked })}
-            />
+          <div style={{ borderTop: '1px solid #ebebeb', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <Label htmlFor="auto-start-breaks" style={{ fontSize: '14px', fontWeight: 500, color: '#171717', display: 'block' }}>
+                  Auto-start Breaks
+                </Label>
+                <p style={{ fontSize: '12px', color: '#666666', margin: '2px 0 0 0' }}>Automatically start break timers</p>
+              </div>
+              <Switch
+                id="auto-start-breaks"
+                checked={settings.autoStartBreaks}
+                onCheckedChange={(checked) => updateSettings({ autoStartBreaks: checked })}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <Label htmlFor="auto-start-pomodoros" style={{ fontSize: '14px', fontWeight: 500, color: '#171717', display: 'block' }}>
+                  Auto-start Pomodoros
+                </Label>
+                <p style={{ fontSize: '12px', color: '#666666', margin: '2px 0 0 0' }}>Automatically start focus sessions</p>
+              </div>
+              <Switch
+                id="auto-start-pomodoros"
+                checked={settings.autoStartPomodoros}
+                onCheckedChange={(checked) => updateSettings({ autoStartPomodoros: checked })}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Cloud Sync */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={sectionTitleStyle}>Cloud Sync</h2>
+            <p style={sectionDescStyle}>Sync your data to Google Drive.</p>
           </div>
 
-          <div className="flex items-center justify-between space-x-2">
-            <Label htmlFor="auto-start-pomodoros">Auto-start Pomodoros</Label>
-            <Switch
-              id="auto-start-pomodoros"
-              checked={settings.autoStartPomodoros}
-              onCheckedChange={(checked) => updateSettings({ autoStartPomodoros: checked })}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Cloud Sync</CardTitle>
-          <CardDescription>Sync your data to Google Drive.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Cloud className="h-5 w-5 text-muted-foreground" />
-              <div className="flex flex-col">
-                <span className="font-medium">Google Drive</span>
-                <span className="text-sm text-muted-foreground">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  background: isAuthenticated ? '#ebf5ff' : '#fafafa',
+                  boxShadow: isAuthenticated ? 'rgba(10,114,239,0.2) 0px 0px 0px 1px' : 'rgb(235,235,235) 0px 0px 0px 1px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Cloud style={{ width: '18px', height: '18px', color: isAuthenticated ? '#0a72ef' : '#808080' }} />
+              </div>
+              <div>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#171717', display: 'block', fontFamily: "'Geist', sans-serif" }}>
+                  Google Drive
+                </span>
+                <span style={{ fontSize: '12px', color: isAuthenticated ? '#0a72ef' : '#666666', fontFamily: "'Geist', sans-serif" }}>
                   {isAuthenticated ? 'Connected' : 'Not connected'}
                 </span>
               </div>
             </div>
+
             {isAuthenticated ? (
-              <Button variant="destructive" onClick={handleDisconnectDrive}>
-                <LogOut className="mr-2 h-4 w-4" /> Disconnect
-              </Button>
+              <button
+                onClick={handleDisconnectDrive}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#fff0ef',
+                  color: '#ff5b4f',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  fontFamily: "'Geist', Arial, sans-serif",
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s ease',
+                }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.8')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
+              >
+                <LogOut style={{ width: '14px', height: '14px' }} />
+                Disconnect
+              </button>
             ) : (
-              <Button onClick={handleConnectDrive}>
+              <button
+                onClick={handleConnectDrive}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#171717',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  fontFamily: "'Geist', Arial, sans-serif",
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s ease',
+                }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
+              >
                 Connect
-              </Button>
+              </button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize the look and feel.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              <span>Dark Mode</span>
-            </div>
-            <Switch
-              checked={theme === 'dark'}
-              onCheckedChange={toggleTheme}
-            />
+        {/* Appearance */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={sectionTitleStyle}>Appearance</h2>
+            <p style={sectionDescStyle}>Customize the look and feel.</p>
           </div>
-        </CardContent>
-      </Card>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  background: '#fafafa',
+                  boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {theme === 'dark'
+                  ? <Moon style={{ width: '18px', height: '18px', color: '#171717' }} />
+                  : <Sun style={{ width: '18px', height: '18px', color: '#808080' }} />
+                }
+              </div>
+              <div>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#171717', display: 'block', fontFamily: "'Geist', sans-serif" }}>
+                  Dark Mode
+                </span>
+                <span style={{ fontSize: '12px', color: '#666666', fontFamily: "'Geist', sans-serif" }}>
+                  {theme === 'dark' ? 'Currently enabled' : 'Currently disabled'}
+                </span>
+              </div>
+            </div>
+            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+          </div>
+        </div>
+      </div>
+
       <ConfirmDialog {...dialogProps} />
     </div>
   );

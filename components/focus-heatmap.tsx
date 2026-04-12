@@ -13,46 +13,36 @@ interface FocusHeatmapProps {
   tasks: Task[];
 }
 
-// Color scale based on minutes focused
+// Vercel-inspired blue gradient: empty = #fafafa → full = #0a72ef
 function getColor(minutes: number): string {
-  if (minutes === 0) return 'hsl(220, 10%, 18%)';
-  if (minutes <= 30) return 'hsl(220, 60%, 32%)';
-  if (minutes <= 60) return 'hsl(225, 70%, 45%)';
-  if (minutes <= 90) return 'hsl(240, 75%, 55%)';
-  return 'hsl(270, 80%, 62%)';
+  if (minutes === 0) return '#ebebeb';
+  if (minutes <= 20) return '#c8dff9';
+  if (minutes <= 45) return '#7bb6f4';
+  if (minutes <= 90) return '#2e8ef0';
+  return '#0a72ef';
 }
 
 export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
 
-  // Build a map: dateString (YYYY-MM-DD) -> minutes focused
   const focusByDay = useMemo(() => {
     const map: Record<string, number> = {};
-
     for (const task of tasks) {
-      // Use completedAt as the proxy for when focus happened
       if (task.completedAt && task.timeSpent > 0) {
         const dateKey = format(new Date(task.completedAt), 'yyyy-MM-dd');
         map[dateKey] = (map[dateKey] ?? 0) + Math.round(task.timeSpent / 60);
       }
     }
-
     return map;
   }, [tasks]);
 
-  // Build the 52-week grid (364 days back + today = 365 cells)
   const today = startOfDay(new Date());
   const DAYS = 365;
-  const COLS = Math.ceil(DAYS / 7); // 53 cols
-
-  // Start from exactly (DAYS-1) days ago
+  const COLS = Math.ceil(DAYS / 7);
   const startDate = subDays(today, DAYS - 1);
-  // Offset so column 0 starts on a Sunday
-  const startDow = getDay(startDate); // 0=Sun, 6=Sat
+  const startDow = getDay(startDate);
 
-  // Build cells: [colIndex][rowIndex] = { date, minutes }
   const grid: Array<Array<{ date: Date; dateKey: string; minutes: number } | null>> = [];
-
   for (let col = 0; col < COLS; col++) {
     const colCells: Array<{ date: Date; dateKey: string; minutes: number } | null> = [];
     for (let row = 0; row < 7; row++) {
@@ -68,7 +58,6 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
     grid.push(colCells);
   }
 
-  // Month label positions: which column does each month start in?
   const monthLabels: Array<{ label: string; col: number }> = [];
   let lastMonth = -1;
   for (let col = 0; col < COLS; col++) {
@@ -76,18 +65,18 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
     if (firstValidCell) {
       const month = firstValidCell.date.getMonth();
       if (month !== lastMonth) {
-        monthLabels.push({ label: format(firstValidCell.date, 'MMM'), col });
+        monthLabels.push({ label: format(firstValidCell.date, 'MMM').toUpperCase(), col });
         lastMonth = month;
       }
     }
   }
 
   const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const SHOW_DOW = [1, 3, 5]; // Mon, Wed, Fri
+  const SHOW_DOW = [1, 3, 5];
 
-  const CELL = 13;
-  const GAP = 2;
-  const LABEL_COL_W = 28;
+  const CELL = 12;
+  const GAP = 3;
+  const LABEL_COL_W = 26;
   const ROW_H = CELL + GAP;
   const COL_W = CELL + GAP;
   const HEADER_H = 20;
@@ -96,23 +85,24 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
   const svgHeight = HEADER_H + 7 * ROW_H;
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div style={{ width: '100%', overflowX: 'auto' }}>
       <svg
         width={svgWidth}
         height={svgHeight}
-        className="text-muted-foreground"
         role="img"
         aria-label="Focus activity heatmap for the last 12 months"
       >
-        {/* Month labels */}
+        {/* Month labels — Geist Mono uppercase */}
         {monthLabels.map(({ label, col }) => (
           <text
             key={`month-${col}`}
             x={LABEL_COL_W + col * COL_W}
-            y={14}
-            fontSize={10}
-            fill="currentColor"
-            opacity={0.6}
+            y={13}
+            fontSize={9}
+            fontFamily="'Geist Mono', monospace"
+            fontWeight={500}
+            fill="#808080"
+            letterSpacing="0.04em"
           >
             {label}
           </text>
@@ -124,16 +114,17 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
             key={`dow-${dow}`}
             x={LABEL_COL_W - 4}
             y={HEADER_H + dow * ROW_H + CELL - 2}
-            fontSize={9}
+            fontSize={8}
+            fontFamily="'Geist Mono', monospace"
+            fontWeight={500}
             textAnchor="end"
-            fill="currentColor"
-            opacity={0.5}
+            fill="#808080"
           >
             {DOW_LABELS[dow].slice(0, 1)}
           </text>
         ))}
 
-        {/* Cells */}
+        {/* Heatmap cells */}
         {grid.map((colCells, colIdx) =>
           colCells.map((cell, rowIdx) => {
             if (!cell) return null;
@@ -152,16 +143,28 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
                       height={CELL}
                       rx={2}
                       fill={getColor(cell.minutes)}
-                      opacity={isHovered ? 0.85 : 1}
-                      style={{ cursor: 'default', transition: 'opacity 0.1s' }}
+                      opacity={isHovered ? 0.75 : 1}
+                      style={{ cursor: 'default', transition: 'opacity 0.1s ease' }}
                       onMouseEnter={() => setHoveredDay(cell.dateKey)}
                       onMouseLeave={() => setHoveredDay(null)}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <span className="font-medium">{format(cell.date, 'EEEE, MMM d, yyyy')}</span>
-                    <br />
-                    {cell.minutes > 0 ? `${cell.minutes} min focused` : 'No focus time recorded'}
+                  <TooltipContent
+                    side="top"
+                    style={{
+                      background: '#ffffff',
+                      boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.08) 0px 8px 16px',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '8px 12px',
+                    }}
+                  >
+                    <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '12px', fontWeight: 600, color: '#171717', display: 'block' }}>
+                      {format(cell.date, 'EEEE, MMM d, yyyy')}
+                    </span>
+                    <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '11px', color: '#666666' }}>
+                      {cell.minutes > 0 ? `${cell.minutes} min focused` : 'No focus time'}
+                    </span>
                   </TooltipContent>
                 </Tooltip>
               </g>
@@ -171,14 +174,39 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
       </svg>
 
       {/* Legend */}
-      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-        <span>Less</span>
-        <svg width={70} height={12}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          marginTop: '8px',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Geist Mono', monospace",
+            fontSize: '10px',
+            color: '#808080',
+            letterSpacing: '0.04em',
+          }}
+        >
+          LESS
+        </span>
+        <svg width={72} height={12}>
           {[0, 20, 45, 75, 100].map((mins, i) => (
-            <rect key={mins} x={i * 14} y={0} width={11} height={11} rx={2} fill={getColor(mins)} />
+            <rect key={mins} x={i * 15} y={0} width={12} height={12} rx={2} fill={getColor(mins)} />
           ))}
         </svg>
-        <span>More</span>
+        <span
+          style={{
+            fontFamily: "'Geist Mono', monospace",
+            fontSize: '10px',
+            color: '#808080',
+            letterSpacing: '0.04em',
+          }}
+        >
+          MORE
+        </span>
       </div>
     </div>
   );

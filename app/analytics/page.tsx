@@ -1,7 +1,6 @@
 'use client';
 
 import { useStore, FocusReflection, Task } from '@/lib/store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   BarChart,
   Bar,
@@ -20,7 +19,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { FocusHeatmap } from '@/components/focus-heatmap';
 import { formatDuration } from '@/lib/utils/format-duration';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+// Vercel workflow palette + neutral grays for charts
+const COLORS = ['#0a72ef', '#de1d8d', '#ff5b4f', '#0068d6', '#666666', '#808080'];
 
 const HOUR_LABELS: Record<number, string> = {
   0: '12 AM', 1: '1 AM', 2: '2 AM', 3: '3 AM', 4: '4 AM', 5: '5 AM',
@@ -31,6 +31,17 @@ const HOUR_LABELS: Record<number, string> = {
 
 const DOW_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+// Vercel chart tooltip style
+const ChartTooltipStyle = {
+  background: '#ffffff',
+  boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.08) 0px 8px 16px',
+  border: 'none',
+  borderRadius: '8px',
+  fontSize: '13px',
+  fontFamily: "'Geist', Arial, sans-serif",
+  color: '#171717',
+};
+
 export default function AnalyticsPage() {
   const { tasks, categories, sessionReflections } = useStore();
   const [mounted, setMounted] = useState(false);
@@ -40,241 +51,252 @@ export default function AnalyticsPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
-  // 1. Task Status Distribution
   const statusData = [
     { name: 'To Do', value: tasks.filter((t) => t.status === 'todo').length },
     { name: 'In Progress', value: tasks.filter((t) => t.status === 'in-progress').length },
     { name: 'Completed', value: tasks.filter((t) => t.status === 'completed').length },
   ].filter((d) => d.value > 0);
 
-  // 2. Weekly Tasks Completed
   const today = new Date();
   const start = startOfWeek(today, { weekStartsOn: 1 });
   const end = endOfWeek(today, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end });
 
-  const weeklyData = days.map((day) => {
-    const tasksCompletedOnDay = tasks.filter((t) =>
-      t.completedAt && isSameDay(new Date(t.completedAt), day)
-    ).length;
+  const weeklyData = days.map((day) => ({
+    name: format(day, 'EEE'),
+    tasks: tasks.filter((t) => t.completedAt && isSameDay(new Date(t.completedAt), day)).length,
+  }));
 
-    return {
-      name: format(day, 'EEE'),
-      tasks: tasksCompletedOnDay,
-    };
-  });
-
-  // 3. Focus Time by Priority (formatted)
   const priorityData = [
     { name: 'High', value: tasks.filter(t => t.priority === 'high').reduce((acc, t) => acc + t.timeSpent, 0) },
     { name: 'Medium', value: tasks.filter(t => t.priority === 'medium').reduce((acc, t) => acc + t.timeSpent, 0) },
     { name: 'Low', value: tasks.filter(t => t.priority === 'low').reduce((acc, t) => acc + t.timeSpent, 0) },
   ].filter(d => d.value > 0).map(d => ({ ...d, value: Math.round(d.value / 60) }));
 
-  // 4. Focus Time by Category
   const categoryFocusData = categories.map(cat => {
     const timeSpent = tasks
       .filter(t => t.categoryId === cat.id)
       .reduce((acc, t) => acc + t.timeSpent, 0);
-    return {
-      name: cat.name,
-      value: Math.round(timeSpent / 60),
-      color: cat.color
-    };
+    return { name: cat.name, value: Math.round(timeSpent / 60), color: cat.color };
   }).filter(d => d.value > 0);
 
-  // 5. On-Time vs Late Completion
   const completedTasks = tasks.filter(t => t.status === 'completed' && t.completedAt);
   const onTimeCount = completedTasks.filter(t => !t.deadline || (t.completedAt! <= t.deadline)).length;
   const lateCount = completedTasks.filter(t => t.deadline && (t.completedAt! > t.deadline)).length;
-
   const completionRateData = [
     { name: 'On Time', value: onTimeCount },
     { name: 'Late', value: lateCount },
   ].filter(d => d.value > 0);
 
-  // Total focus time formatted
   const totalFocusSeconds = tasks.reduce((acc, t) => acc + t.timeSpent, 0);
 
+  const cardStyle = {
+    background: '#ffffff',
+    boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
+    borderRadius: '8px',
+    padding: '24px',
+    border: 'none',
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">Visualize your productivity trends.</p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '40px' }}>
+        <h1
+          style={{
+            fontFamily: "'Geist', Arial, sans-serif",
+            fontSize: '40px',
+            fontWeight: 600,
+            letterSpacing: '-2.4px',
+            lineHeight: 1.1,
+            color: '#171717',
+            margin: 0,
+          }}
+        >
+          Analytics
+        </h1>
+        <p
+          style={{
+            fontFamily: "'Geist', Arial, sans-serif",
+            fontSize: '18px',
+            fontWeight: 400,
+            color: '#4d4d4d',
+            marginTop: '8px',
+          }}
+        >
+          Visualize your productivity trends.
+        </p>
       </div>
 
-      {/* Focus Heatmap */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Focus Activity — Last 12 Months</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FocusHeatmap tasks={tasks} />
-        </CardContent>
-      </Card>
+      {/* Heatmap */}
+      <div style={{ ...cardStyle, marginBottom: '16px' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <span
+            style={{
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: '12px',
+              fontWeight: 500,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#666666',
+            }}
+          >
+            FOCUS ACTIVITY — LAST 12 MONTHS
+          </span>
+        </div>
+        <FocusHeatmap tasks={tasks} />
+      </div>
 
       {/* Smart Insights */}
       <SmartInsights tasks={tasks} sessionReflections={sessionReflections} totalFocusSeconds={totalFocusSeconds} />
 
-      {/* First row: Task Status + Weekly Completion */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Task Status Pie Chart */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Task Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height={250}>
+      {/* Charts row 1 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginTop: '16px' }}>
+        {/* Task Status Pie */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+              TASK STATUS
+            </span>
+          </div>
+          <div style={{ height: '240px' }}>
+            {statusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="40%"
-                    outerRadius="60%"
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
+                  <Pie data={statusData} cx="50%" cy="50%" innerRadius="40%" outerRadius="65%" paddingAngle={3} dataKey="value">
+                    {statusData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Tooltip contentStyle={ChartTooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: '12px', fontFamily: "'Geist', Arial, sans-serif", color: '#666666' }} />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+            ) : (
+              <EmptyChart message="No tasks yet." />
+            )}
+          </div>
+        </div>
 
-        {/* Weekly Completion Bar Chart */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tasks Completed This Week</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={30} />
-                  <Tooltip />
-                  <Bar dataKey="tasks" fill="#8884d8" name="Tasks Completed" radius={[4, 4, 0, 0]} />
+        {/* Weekly Completion Bar */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+              TASKS COMPLETED THIS WEEK
+            </span>
+          </div>
+          <div style={{ height: '240px' }}>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={weeklyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ebebeb" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#666666', fontFamily: "'Geist', sans-serif" }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#666666', fontFamily: "'Geist', sans-serif" }} width={28} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={ChartTooltipStyle} cursor={{ fill: '#fafafa' }} />
+                <Bar dataKey="tasks" fill="#0a72ef" name="Tasks Completed" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts row 2 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '16px' }}>
+        {/* Focus by Category */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+              BY CATEGORY
+            </span>
+          </div>
+          <div style={{ height: '220px' }}>
+            {categoryFocusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={categoryFocusData} cx="50%" cy="50%" innerRadius="35%" outerRadius="60%" paddingAngle={3} dataKey="value">
+                    {categoryFocusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={ChartTooltipStyle} formatter={(value) => `${formatDuration(Number(value) * 60)}`} />
+                  <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Geist', Arial, sans-serif", color: '#666666' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart message="No focus time recorded yet." />
+            )}
+          </div>
+        </div>
+
+        {/* Completion Rate */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+              COMPLETION RATE
+            </span>
+          </div>
+          <div style={{ height: '220px' }}>
+            {completionRateData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={completionRateData} cx="50%" cy="50%" outerRadius="60%" dataKey="value">
+                    <Cell fill="#0a72ef" />
+                    <Cell fill="#ff5b4f" />
+                  </Pie>
+                  <Tooltip contentStyle={ChartTooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Geist', Arial, sans-serif" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart message="No completed tasks with deadlines yet." />
+            )}
+          </div>
+        </div>
+
+        {/* Focus by Priority */}
+        <div style={cardStyle}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+              BY PRIORITY
+            </span>
+          </div>
+          <div style={{ height: '220px' }}>
+            {priorityData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={priorityData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ebebeb" />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#666666', fontFamily: "'Geist', sans-serif" }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={55} tick={{ fontSize: 11, fill: '#666666', fontFamily: "'Geist', sans-serif" }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={ChartTooltipStyle} formatter={(value) => `${value} mins`} />
+                  <Bar dataKey="value" fill="#de1d8d" name="Minutes" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+            ) : (
+              <EmptyChart message="No focus time recorded yet." />
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Second row: Category + Completion Rate + Priority */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Focus Time by Category */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Focus Time by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px] w-full">
-              {categoryFocusData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={categoryFocusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="40%"
-                      outerRadius="60%"
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {categoryFocusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${formatDuration(Number(value) * 60)}`} />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                  No focus time recorded yet.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Completion Rate (On Time vs Late) */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Completion Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px] w-full">
-              {completionRateData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={completionRateData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius="60%"
-                      dataKey="value"
-                    >
-                      <Cell fill="#10b981" />
-                      <Cell fill="#ef4444" />
-                    </Pie>
-                    <Tooltip />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                  No completed tasks with deadlines yet.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Focus Time by Priority */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Focus Time by Priority</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px] w-full">
-              {priorityData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={priorityData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tick={{ fontSize: 12 }} />
-                    <YAxis dataKey="name" type="category" width={55} tick={{ fontSize: 12 }} />
-                    <Tooltip formatter={(value) => `${value} mins`} />
-                    <Bar dataKey="value" fill="#82ca9d" name="Minutes" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                  No focus time recorded yet.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <style>{`
+        @media (max-width: 768px) {
+          .analytics-grid-1 { grid-template-columns: 1fr !important; }
+          .analytics-grid-2 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
 
-// Smart Insights section
+function EmptyChart({ message }: { message: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <p style={{ fontSize: '13px', color: '#808080', fontFamily: "'Geist', Arial, sans-serif" }}>{message}</p>
+    </div>
+  );
+}
+
 interface SmartInsightsProps {
   tasks: Task[];
   sessionReflections: FocusReflection[];
@@ -286,7 +308,6 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
     const completedWithTime = tasks.filter((t) => t.completedAt && t.timeSpent > 0);
     const results: string[] = [];
 
-    // Insight 1: Most productive hour window
     if (completedWithTime.length >= 2) {
       const hourCounts: Record<number, number> = {};
       for (const t of completedWithTime) {
@@ -297,15 +318,12 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
       if (peakHour) {
         const h = Number(peakHour[0]);
         const nextH = (h + 2) % 24;
-        results.push(
-          `You complete the most tasks between ${HOUR_LABELS[h]} and ${HOUR_LABELS[nextH]}.`
-        );
+        results.push(`You complete the most tasks between ${HOUR_LABELS[h]} and ${HOUR_LABELS[nextH]}.`);
       }
     } else {
       results.push('Complete more tasks to discover your peak productivity window.');
     }
 
-    // Insight 2: Most productive day of week
     if (completedWithTime.length >= 3) {
       const dowCounts: Record<number, number> = {};
       for (const t of completedWithTime) {
@@ -314,28 +332,21 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
       }
       const peakDow = Object.entries(dowCounts).sort(([, a], [, b]) => b - a)[0];
       if (peakDow) {
-        results.push(
-          `${DOW_LABELS[Number(peakDow[0])]} is your most productive day of the week.`
-        );
+        results.push(`${DOW_LABELS[Number(peakDow[0])]} is your most productive day of the week.`);
       }
     } else {
       results.push('Log activity on multiple days to see your most productive day.');
     }
 
-    // Insight 3: Reflection-based or focus total
     if (sessionReflections.length >= 3) {
-      const avgQuality =
-        sessionReflections.reduce((acc, r) => acc + r.focusQuality, 0) /
-        sessionReflections.length;
+      const avgQuality = sessionReflections.reduce((acc, r) => acc + r.focusQuality, 0) / sessionReflections.length;
       const progressCount = sessionReflections.filter((r) => r.madeProgress === true).length;
       const progressPct = Math.round((progressCount / sessionReflections.length) * 100);
       results.push(
-        `Across ${sessionReflections.length} sessions, your average focus quality is ${avgQuality.toFixed(1)}/5 and you made progress ${progressPct}% of the time.`
+        `Across ${sessionReflections.length} sessions, avg focus quality is ${avgQuality.toFixed(1)}/5 and you made progress ${progressPct}% of the time.`
       );
     } else if (totalFocusSeconds > 0) {
-      results.push(
-        `You have logged ${formatDuration(totalFocusSeconds)} of total focus time. Keep building the habit.`
-      );
+      results.push(`You have logged ${formatDuration(totalFocusSeconds)} of total focus time. Keep building the habit.`);
     } else {
       results.push('Start your first focus session to begin tracking insights.');
     }
@@ -344,20 +355,57 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
   }, [tasks, sessionReflections, totalFocusSeconds]);
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Smart Insights</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {insights.map((insight, i) => (
-            <li key={i} className="flex items-start gap-3 text-sm">
-              <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
-              <span className="text-muted-foreground">{insight}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+    <div
+      style={{
+        background: '#ffffff',
+        boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
+        borderRadius: '8px',
+        padding: '24px',
+        border: 'none',
+        marginBottom: '0',
+        marginTop: '16px',
+      }}
+    >
+      <div style={{ marginBottom: '16px' }}>
+        <span
+          style={{
+            fontFamily: "'Geist Mono', monospace",
+            fontSize: '12px',
+            fontWeight: 500,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: '#666666',
+          }}
+        >
+          SMART INSIGHTS
+        </span>
+      </div>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {insights.map((insight, i) => (
+          <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <span
+              style={{
+                flexShrink: 0,
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#0a72ef',
+                marginTop: '7px',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: "'Geist', Arial, sans-serif",
+                fontSize: '14px',
+                lineHeight: 1.6,
+                color: '#4d4d4d',
+              }}
+            >
+              {insight}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

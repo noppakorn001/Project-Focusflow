@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useStore, Task, TaskStatus, TaskPriority } from '@/lib/store';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -18,18 +17,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskForm } from '@/components/task-form';
 import { CategoryManager } from '@/components/category-manager';
 import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 import { ProjectProgressView } from '@/components/project-progress-view';
 import { SmartSortTable } from '@/components/smart-sort-table';
-import { Plus, Search, Filter, Trash2, Edit, CheckCircle2, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, CheckCircle2, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+
+const priorityColor: Record<string, string> = {
+  high: '#ff5b4f',
+  medium: '#de1d8d',
+  low: '#0a72ef',
+};
+const priorityBg: Record<string, string> = {
+  high: '#fff0ef',
+  medium: '#fdf0f8',
+  low: '#ebf5ff',
+};
 
 export default function TasksPage() {
   const { tasks, updateTask, deleteTask, categories } = useStore();
@@ -39,6 +45,7 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [activeTab, setActiveTab] = useState<'list' | 'smart-sort' | 'by-project'>('list');
   const [mounted, setMounted] = useState(false);
   const { confirm, dialogProps } = useConfirmDialog();
 
@@ -84,28 +91,95 @@ export default function TasksPage() {
     return categories.find(c => c.id === id);
   };
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
+
+  const tabs = [
+    { key: 'list' as const, label: 'List View' },
+    { key: 'smart-sort' as const, label: 'Smart Sort' },
+    { key: 'by-project' as const, label: 'By Project' },
+  ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          marginBottom: '32px',
+        }}
+      >
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-          <p className="text-muted-foreground">Manage your tasks and priorities.</p>
+          <h1
+            style={{
+              fontFamily: "'Geist', Arial, sans-serif",
+              fontSize: '40px',
+              fontWeight: 600,
+              letterSpacing: '-2.4px',
+              lineHeight: 1.1,
+              color: '#171717',
+              margin: 0,
+            }}
+          >
+            Tasks
+          </h1>
+          <p
+            style={{
+              fontFamily: "'Geist', Arial, sans-serif",
+              fontSize: '18px',
+              fontWeight: 400,
+              color: '#4d4d4d',
+              marginTop: '8px',
+            }}
+          >
+            Manage your tasks and priorities.
+          </p>
         </div>
-        <div className="flex gap-2">
+
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <CategoryManager />
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setEditingTask(null)}>
-                <Plus className="mr-2 h-4 w-4" /> Add Task
-              </Button>
+              <button
+                onClick={() => setEditingTask(null)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#171717',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  fontFamily: "'Geist', Arial, sans-serif",
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s ease',
+                }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
+              >
+                <Plus style={{ width: '14px', height: '14px' }} />
+                Add Task
+              </button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 8px 32px', borderRadius: '12px', border: 'none' }}>
               <DialogHeader>
-                <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+                <DialogTitle
+                  style={{
+                    fontFamily: "'Geist', Arial, sans-serif",
+                    fontSize: '24px',
+                    fontWeight: 600,
+                    letterSpacing: '-0.96px',
+                    color: '#171717',
+                  }}
+                >
+                  {editingTask ? 'Edit Task' : 'Add New Task'}
+                </DialogTitle>
               </DialogHeader>
               <TaskForm
                 task={editingTask || undefined}
@@ -116,284 +190,471 @@ export default function TasksPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="list">
-        <TabsList className="mb-4">
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="smart-sort">Smart Sort</TabsTrigger>
-          <TabsTrigger value="by-project">By Project</TabsTrigger>
-        </TabsList>
+      {/* Pill Tab Selector */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '4px',
+          marginBottom: '24px',
+          padding: '4px',
+          background: '#fafafa',
+          boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+          borderRadius: '64px',
+          width: 'fit-content',
+        }}
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            style={{
+              padding: '7px 20px',
+              borderRadius: '9999px',
+              border: 'none',
+              background: activeTab === tab.key ? '#171717' : 'transparent',
+              color: activeTab === tab.key ? '#ffffff' : '#666666',
+              fontSize: '14px',
+              fontWeight: activeTab === tab.key ? 600 : 500,
+              fontFamily: "'Geist', Arial, sans-serif",
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              letterSpacing: activeTab === tab.key ? '-0.14px' : 'normal',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Shared filter bar for List and Smart Sort tabs */}
-        <TabsContent value="list" className="space-y-4 mt-0">
-          <FilterBar
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterPriority={filterPriority}
-            setFilterPriority={setFilterPriority}
-            filterCategory={filterCategory}
-            setFilterCategory={setFilterCategory}
-            categories={categories}
-          />
+      {/* Filter Bar — for list & smart-sort */}
+      {(activeTab === 'list' || activeTab === 'smart-sort') && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            marginBottom: '20px',
+            alignItems: 'center',
+          }}
+        >
+          {/* Search */}
+          <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+            <Search
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '14px',
+                height: '14px',
+                color: '#808080',
+              }}
+            />
+            <Input
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                paddingLeft: '32px',
+                background: '#ffffff',
+                boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                color: '#171717',
+                height: '36px',
+              }}
+            />
+          </div>
 
-          <div className="grid gap-4">
-            {filteredTasks.length === 0 ? (
-              <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed text-center">
-                <div className="rounded-full bg-muted p-4">
-                  <CheckSquare className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">No tasks found</h3>
-                <p className="text-muted-foreground">
-                  Create a new task to get started.
-                </p>
+          {/* Status filter */}
+          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+            <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as TaskStatus | 'all')}>
+              <SelectTrigger className="border-0 shadow-none bg-white h-9 text-sm w-[140px]" style={{ boxShadow: 'none', border: 'none' }}>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="todo">To Do</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Priority filter */}
+          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+            <Select value={filterPriority} onValueChange={(v) => setFilterPriority(v as TaskPriority | 'all')}>
+              <SelectTrigger className="border-0 shadow-none bg-white h-9 text-sm w-[140px]" style={{ boxShadow: 'none', border: 'none' }}>
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priorities</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Category filter */}
+          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+            <Select value={filterCategory} onValueChange={(v) => setFilterCategory(v)}>
+              <SelectTrigger className="border-0 shadow-none bg-white h-9 text-sm w-[140px]" style={{ boxShadow: 'none', border: 'none' }}>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
+
+      {/* List View */}
+      {activeTab === 'list' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {filteredTasks.length === 0 ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '240px',
+                background: '#ffffff',
+                boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
+                borderRadius: '8px',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: '#fafafa',
+                  boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '16px',
+                }}
+              >
+                <CheckCircle2 style={{ width: '20px', height: '20px', color: '#0a72ef' }} />
               </div>
-            ) : (
-              filteredTasks.map((task) => {
-                const category = getCategory(task.categoryId);
-                return (
-                  <div
-                    key={task.id}
-                    className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center md:justify-between"
-                  >
-                    <div className="flex items-start gap-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          'mt-1 h-6 w-6 rounded-full border-2 p-0 hover:bg-transparent',
-                          task.status === 'completed'
-                            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-                            : 'border-muted-foreground text-transparent hover:border-primary'
-                        )}
-                        onClick={() =>
-                          handleStatusChange(
-                            task.id,
-                            task.status === 'completed' ? 'todo' : 'completed'
-                          )
-                        }
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                      </Button>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3
-                            className={cn(
-                              'font-semibold leading-none',
-                              task.status === 'completed' && 'text-muted-foreground line-through'
-                            )}
+              <h3
+                style={{
+                  fontFamily: "'Geist', Arial, sans-serif",
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  letterSpacing: '-0.32px',
+                  color: '#171717',
+                  margin: '0 0 6px 0',
+                }}
+              >
+                No tasks found
+              </h3>
+              <p style={{ fontSize: '14px', color: '#666666', margin: 0 }}>
+                Create a new task to get started.
+              </p>
+            </div>
+          ) : (
+            filteredTasks.map((task) => {
+              const category = getCategory(task.categoryId);
+              const isOverdue = task.deadline && task.deadline < now && task.status !== 'completed';
+              return (
+                <div
+                  key={task.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    background: '#ffffff',
+                    boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
+                    borderRadius: '8px',
+                    padding: '16px 20px',
+                    border: 'none',
+                    transition: 'box-shadow 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.boxShadow =
+                      'rgba(0,0,0,0.12) 0px 0px 0px 1px, rgba(0,0,0,0.06) 0px 4px 4px, #fafafa 0px 0px 0px 1px';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.boxShadow =
+                      'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px';
+                  }}
+                >
+                  {/* Left: checkbox + info */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', minWidth: 0, flex: 1 }}>
+                    {/* Checkbox */}
+                    <button
+                      onClick={() => handleStatusChange(task.id, task.status === 'completed' ? 'todo' : 'completed')}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: task.status === 'completed' ? '#0a72ef' : '#ffffff',
+                        boxShadow: task.status === 'completed'
+                          ? 'none'
+                          : 'rgba(0,0,0,0.2) 0px 0px 0px 1.5px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginTop: '2px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {task.status === 'completed' && (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M2 5l2.5 2.5L8 3" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+
+                    {/* Task details */}
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
+                        <span
+                          style={{
+                            fontFamily: "'Geist', Arial, sans-serif",
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            letterSpacing: '-0.15px',
+                            color: task.status === 'completed' ? '#808080' : '#171717',
+                            textDecoration: task.status === 'completed' ? 'line-through' : 'none',
+                          }}
+                        >
+                          {task.title}
+                        </span>
+
+                        {/* Priority pill */}
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            background: priorityBg[task.priority] || '#fafafa',
+                            color: priorityColor[task.priority] || '#666666',
+                            borderRadius: '9999px',
+                            padding: '1px 8px',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            fontFamily: "'Geist Mono', monospace",
+                            textTransform: 'uppercase' as const,
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          {task.priority}
+                        </span>
+
+                        {/* Category */}
+                        {category && (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '9999px',
+                              padding: '1px 8px',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              color: category.color,
+                              background: `${category.color}18`,
+                            }}
                           >
-                            {task.title}
-                          </h3>
-                          {category && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 gap-1" style={{ borderColor: category.color, color: category.color }}>
-                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: category.color }} />
-                              {category.name}
-                            </Badge>
-                          )}
-                          {task.project && (
-                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5">
-                              {task.project}
-                            </Badge>
-                          )}
-                        </div>
-                        {task.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {task.description}
-                          </p>
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: category.color, flexShrink: 0 }} />
+                            {category.name}
+                          </span>
                         )}
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          <Badge
-                            variant={
-                              task.priority === 'high'
-                                ? 'destructive'
-                                : task.priority === 'medium'
-                                  ? 'secondary'
-                                  : 'outline'
-                            }
-                            className={cn(
-                              task.priority === 'medium' && 'bg-yellow-500/15 text-yellow-600 hover:bg-yellow-500/25 border-yellow-200'
-                            )}
+
+                        {/* Project */}
+                        {task.project && (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              borderRadius: '9999px',
+                              padding: '1px 8px',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              background: '#fafafa',
+                              color: '#666666',
+                              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                            }}
                           >
-                            {task.priority}
-                          </Badge>
-                          {task.deadline && (
-                            <Badge variant="outline" className={cn("flex items-center gap-1",
-                              task.deadline < now && task.status !== 'completed' ? "text-destructive border-destructive" : ""
-                            )}>
-                              <CalendarIcon className="h-3 w-3" />
-                              {format(task.deadline, 'MMM d')}
-                            </Badge>
-                          )}
-                          {task.tags.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {task.timeSpent > 0 && (
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {Math.floor(task.timeSpent / 60)}m
-                            </Badge>
-                          )}
-                        </div>
+                            {task.project}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      {task.description && (
+                        <p style={{ fontSize: '13px', color: '#666666', margin: '2px 0 6px', lineHeight: 1.4 }}>
+                          {task.description}
+                        </p>
+                      )}
+
+                      {/* Meta row */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {task.deadline && (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '9999px',
+                              padding: '2px 8px',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              background: isOverdue ? '#fff0ef' : '#fafafa',
+                              color: isOverdue ? '#ff5b4f' : '#666666',
+                              boxShadow: isOverdue ? 'rgba(255,91,79,0.2) 0px 0px 0px 1px' : 'rgb(235,235,235) 0px 0px 0px 1px',
+                            }}
+                          >
+                            <CalendarIcon style={{ width: '10px', height: '10px' }} />
+                            {format(task.deadline, 'MMM d')}
+                          </span>
+                        )}
+
+                        {task.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            style={{
+                              display: 'inline-flex',
+                              borderRadius: '9999px',
+                              padding: '2px 8px',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              background: '#fafafa',
+                              color: '#666666',
+                              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+
+                        {task.timeSpent > 0 && (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '9999px',
+                              padding: '2px 8px',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              background: '#ebf5ff',
+                              color: '#0068d6',
+                            }}
+                          >
+                            <Clock style={{ width: '10px', height: '10px' }} />
+                            {Math.floor(task.timeSpent / 60)}m
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 md:self-start">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setEditingTask(task);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => handleDelete(task.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </TabsContent>
 
-        <TabsContent value="smart-sort" className="space-y-4 mt-0">
-          <FilterBar
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterPriority={filterPriority}
-            setFilterPriority={setFilterPriority}
-            filterCategory={filterCategory}
-            setFilterCategory={setFilterCategory}
-            categories={categories}
-          />
-          <SmartSortTable tasks={filteredTasks} />
-        </TabsContent>
+                  {/* Right: actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => {
+                        setEditingTask(task);
+                        setIsDialogOpen(true);
+                      }}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 0.15s ease',
+                        color: '#808080',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#fafafa'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                    >
+                      <Edit style={{ width: '14px', height: '14px' }} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(task.id)}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 0.15s ease',
+                        color: '#808080',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = '#fff0ef';
+                        (e.currentTarget as HTMLElement).style.color = '#ff5b4f';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = 'transparent';
+                        (e.currentTarget as HTMLElement).style.color = '#808080';
+                      }}
+                    >
+                      <Trash2 style={{ width: '14px', height: '14px' }} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
 
-        <TabsContent value="by-project" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Project Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProjectProgressView tasks={tasks} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Smart Sort tab */}
+      {activeTab === 'smart-sort' && (
+        <SmartSortTable tasks={filteredTasks} />
+      )}
+
+      {/* By Project tab */}
+      {activeTab === 'by-project' && (
+        <div
+          style={{
+            background: '#ffffff',
+            boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
+            borderRadius: '8px',
+            padding: '28px',
+            border: 'none',
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: "'Geist', Arial, sans-serif",
+              fontSize: '18px',
+              fontWeight: 600,
+              letterSpacing: '-0.36px',
+              color: '#171717',
+              margin: '0 0 20px 0',
+            }}
+          >
+            Project Progress
+          </h2>
+          <ProjectProgressView tasks={tasks} />
+        </div>
+      )}
 
       <ConfirmDialog {...dialogProps} />
     </div>
-  );
-}
-
-// Shared filter bar component
-interface FilterBarProps {
-  searchQuery: string;
-  setSearchQuery: (v: string) => void;
-  filterStatus: TaskStatus | 'all';
-  setFilterStatus: (v: TaskStatus | 'all') => void;
-  filterPriority: TaskPriority | 'all';
-  setFilterPriority: (v: TaskPriority | 'all') => void;
-  filterCategory: string;
-  setFilterCategory: (v: string) => void;
-  categories: { id: string; name: string }[];
-}
-
-function FilterBar({
-  searchQuery, setSearchQuery,
-  filterStatus, setFilterStatus,
-  filterPriority, setFilterPriority,
-  filterCategory, setFilterCategory,
-  categories,
-}: FilterBarProps) {
-  return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center">
-      <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search tasks..."
-          className="pl-8"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Select
-          value={filterStatus}
-          onValueChange={(v) => setFilterStatus(v as TaskStatus | 'all')}
-        >
-          <SelectTrigger className="w-[140px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="todo">To Do</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={filterPriority}
-          onValueChange={(v) => setFilterPriority(v as TaskPriority | 'all')}
-        >
-          <SelectTrigger className="w-[140px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={filterCategory}
-          onValueChange={(v) => setFilterCategory(v)}
-        >
-          <SelectTrigger className="w-[140px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
-}
-
-function CheckSquare({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <polyline points="9 11 12 14 22 4" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
   );
 }

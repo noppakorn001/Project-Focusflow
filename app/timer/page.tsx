@@ -1,7 +1,6 @@
 'use client';
 
 import { useStore, TimerMode } from '@/lib/store';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -9,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
 import { Play, Pause, RotateCcw, Coffee, Brain, Armchair, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -26,15 +24,15 @@ function CircularProgress({
   mode: TimerMode;
 }) {
   const size = 280;
-  const strokeWidth = 6;
+  const strokeWidth = 5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
 
-  const modeColors: Record<TimerMode, string> = {
-    'focus': 'stroke-primary',
-    'short-break': 'stroke-emerald-500',
-    'long-break': 'stroke-blue-500',
+  const modeStroke: Record<TimerMode, string> = {
+    focus: '#0a72ef',
+    'short-break': '#4d4d4d',
+    'long-break': '#808080',
   };
 
   return (
@@ -44,17 +42,16 @@ function CircularProgress({
       viewBox={`0 0 ${size} ${size}`}
       className="absolute inset-0 -rotate-90"
     >
-      {/* Background circle */}
+      {/* Background track */}
       <circle
         cx={size / 2}
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="currentColor"
+        stroke="#ebebeb"
         strokeWidth={strokeWidth}
-        className="text-muted/20"
       />
-      {/* Progress circle */}
+      {/* Progress arc */}
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -64,15 +61,21 @@ function CircularProgress({
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={strokeDashoffset}
-        className={cn(
-          modeColors[mode],
-          'transition-[stroke-dashoffset] duration-1000 ease-linear',
-          isActive && 'drop-shadow-[0_0_6px_currentColor]'
-        )}
+        stroke={modeStroke[mode]}
+        style={{
+          transition: 'stroke-dashoffset 1s linear',
+          filter: isActive ? `drop-shadow(0 0 4px ${modeStroke[mode]}88)` : 'none',
+        }}
       />
     </svg>
   );
 }
+
+const modeConfig = {
+  focus: { label: 'Focus', icon: Brain, color: '#0a72ef', bgActive: '#171717', textActive: '#ffffff' },
+  'short-break': { label: 'Short Break', icon: Coffee, color: '#666666', bgActive: '#171717', textActive: '#ffffff' },
+  'long-break': { label: 'Long Break', icon: Armchair, color: '#666666', bgActive: '#171717', textActive: '#ffffff' },
+};
 
 export default function TimerPage() {
   const { timer, tasks, settings, setTimer, resetTimer, switchMode } = useStore();
@@ -83,7 +86,6 @@ export default function TimerPage() {
     setMounted(true);
   }, []);
 
-  // Calculate total duration for progress ring
   const getTotalDuration = () => {
     switch (timer.mode) {
       case 'focus': return settings.focusDuration * 60;
@@ -103,8 +105,6 @@ export default function TimerPage() {
 
   const isFocusMode = timer.mode === 'focus';
   const hasLinkedTask = timer.linkedTaskId !== null;
-
-  // In focus mode, a task must be selected before starting
   const canStart = !isFocusMode || hasLinkedTask;
 
   const toggleTimer = () => {
@@ -132,146 +132,271 @@ export default function TimerPage() {
 
   const activeTasks = tasks.filter((t) => t.status !== 'completed');
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
-  const modeLabel = timer.mode === 'focus' ? 'Focus' : timer.mode === 'short-break' ? 'Short Break' : 'Long Break';
+  const currentMode = modeConfig[timer.mode];
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-8 py-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight">Focus Timer</h1>
-        <p className="text-muted-foreground">Stay focused and track your productivity.</p>
+    <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1
+          style={{
+            fontFamily: "'Geist', Arial, sans-serif",
+            fontSize: '40px',
+            fontWeight: 600,
+            letterSpacing: '-2.4px',
+            lineHeight: 1.1,
+            color: '#171717',
+            margin: 0,
+          }}
+        >
+          Focus Timer
+        </h1>
+        <p
+          style={{
+            fontFamily: "'Geist', Arial, sans-serif",
+            fontSize: '18px',
+            fontWeight: 400,
+            lineHeight: 1.6,
+            color: '#4d4d4d',
+            marginTop: '8px',
+          }}
+        >
+          Stay focused. Track your sessions.
+        </p>
       </div>
 
-      {/* Mode Selector */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        <Button
-          variant={timer.mode === 'focus' ? 'default' : 'outline'}
-          onClick={() => handleModeChange('focus')}
-          className="gap-2"
-          size="sm"
-        >
-          <Brain className="h-4 w-4" /> Focus
-        </Button>
-        <Button
-          variant={timer.mode === 'short-break' ? 'default' : 'outline'}
-          onClick={() => handleModeChange('short-break')}
-          className="gap-2"
-          size="sm"
-        >
-          <Coffee className="h-4 w-4" /> Short Break
-        </Button>
-        <Button
-          variant={timer.mode === 'long-break' ? 'default' : 'outline'}
-          onClick={() => handleModeChange('long-break')}
-          className="gap-2"
-          size="sm"
-        >
-          <Armchair className="h-4 w-4" /> Long Break
-        </Button>
+      {/* Mode Selector — Large pill buttons */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '8px',
+          marginBottom: '40px',
+          padding: '4px',
+          background: '#fafafa',
+          boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+          borderRadius: '64px',
+          width: 'fit-content',
+          margin: '0 auto 40px auto',
+        }}
+      >
+        {(Object.keys(modeConfig) as TimerMode[]).map((mode) => {
+          const cfg = modeConfig[mode];
+          const Icon = cfg.icon;
+          const isActive = timer.mode === mode;
+          return (
+            <button
+              key={mode}
+              onClick={() => handleModeChange(mode)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 20px',
+                borderRadius: '9999px',
+                border: 'none',
+                background: isActive ? '#171717' : 'transparent',
+                color: isActive ? '#ffffff' : '#666666',
+                fontSize: '14px',
+                fontWeight: isActive ? 600 : 500,
+                fontFamily: "'Geist', Arial, sans-serif",
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                letterSpacing: isActive ? '-0.14px' : 'normal',
+              }}
+            >
+              <Icon style={{ width: '14px', height: '14px' }} />
+              {cfg.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Timer Display with Circular Progress */}
-      <Card className="w-full max-w-md">
-        <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
-          {/* Circular Timer Container */}
-          <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>
-            <CircularProgress progress={progress} isActive={timer.isActive} mode={timer.mode} />
+      {/* Timer Card */}
+      <div
+        style={{
+          background: '#ffffff',
+          boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
+          borderRadius: '12px',
+          padding: '48px 32px',
+          border: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        {/* Circular Timer */}
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '280px',
+            height: '280px',
+          }}
+        >
+          <CircularProgress progress={progress} isActive={timer.isActive} mode={timer.mode} />
 
-            {/* Time Display */}
-            <div className="z-10 flex flex-col items-center">
-              <div
-                className={cn(
-                  'text-6xl sm:text-7xl font-bold tabular-nums tracking-tighter transition-colors duration-500',
-                  timer.isActive ? 'text-foreground' : 'text-muted-foreground'
-                )}
-              >
-                {formatTime(timer.timeLeft)}
-              </div>
-              <p className={cn(
-                'mt-1 text-sm font-medium capitalize transition-colors',
-                timer.isActive ? 'text-primary' : 'text-muted-foreground'
-              )}>
-                {modeLabel}
-              </p>
+          {/* Time display */}
+          <div style={{ zIndex: 10, textAlign: 'center' }}>
+            <div
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: '64px',
+                fontWeight: 600,
+                letterSpacing: '-2px',
+                lineHeight: 1.0,
+                color: timer.isActive ? '#171717' : '#4d4d4d',
+                fontVariantNumeric: 'tabular-nums',
+                transition: 'color 0.3s ease',
+              }}
+            >
+              {formatTime(timer.timeLeft)}
+            </div>
+            <div
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: '11px',
+                fontWeight: 500,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: timer.isActive ? currentMode.color : '#808080',
+                marginTop: '8px',
+                transition: 'color 0.3s ease',
+              }}
+            >
+              {timer.mode.replace('-', ' ')}
             </div>
           </div>
+        </div>
 
-          {/* Controls */}
-          <div className="mt-6 flex w-full max-w-xs flex-col gap-4">
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                size="lg"
-                className={cn(
-                  'h-14 w-32 rounded-full text-lg transition-all duration-200',
-                  timer.isActive && 'shadow-lg shadow-primary/25',
-                  isFocusMode && !hasLinkedTask && 'opacity-50 cursor-not-allowed'
+        {/* Controls */}
+        <div style={{ marginTop: '40px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={toggleTimer}
+            disabled={isFocusMode && !hasLinkedTask}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: isFocusMode && !hasLinkedTask ? '#cccccc' : '#171717',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '14px 32px',
+              fontSize: '16px',
+              fontWeight: 600,
+              fontFamily: "'Geist', Arial, sans-serif",
+              cursor: isFocusMode && !hasLinkedTask ? 'not-allowed' : 'pointer',
+              transition: 'opacity 0.15s ease',
+              letterSpacing: '-0.16px',
+            }}
+          >
+            {timer.isActive ? (
+              <><Pause style={{ width: '16px', height: '16px' }} /> Pause</>
+            ) : (
+              <><Play style={{ width: '16px', height: '16px' }} /> Start</>
+            )}
+          </button>
+
+          <button
+            onClick={resetTimer}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              background: '#ffffff',
+              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.15s ease',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+          >
+            <RotateCcw style={{ width: '16px', height: '16px', color: '#666666' }} />
+          </button>
+        </div>
+
+        {/* Task selector */}
+        <div style={{ width: '100%', maxWidth: '360px', marginTop: '32px' }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              fontWeight: 500,
+              color: '#666666',
+              marginBottom: '8px',
+              fontFamily: "'Geist Mono', monospace",
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {isFocusMode ? 'TASK REQUIRED' : 'LINKED TASK'}
+          </label>
+
+          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+            <Select
+              value={timer.linkedTaskId || 'none'}
+              onValueChange={handleTaskLink}
+            >
+              <SelectTrigger
+                className={cn('border-0 shadow-none bg-white')}
+                style={{ boxShadow: 'none', border: 'none' }}
+              >
+                <SelectValue placeholder="Select a task..." />
+              </SelectTrigger>
+              <SelectContent>
+                {!isFocusMode && <SelectItem value="none">None</SelectItem>}
+                {activeTasks.map((task) => (
+                  <SelectItem key={task.id} value={task.id}>
+                    {task.title}
+                  </SelectItem>
+                ))}
+                {activeTasks.length === 0 && (
+                  <SelectItem value="none" disabled>
+                    No active tasks available
+                  </SelectItem>
                 )}
-                onClick={toggleTimer}
-                disabled={isFocusMode && !hasLinkedTask}
-              >
-                {timer.isActive ? (
-                  <>
-                    <Pause className="mr-2 h-5 w-5" /> Pause
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-5 w-5" /> Start
-                  </>
-                )}
-              </Button>
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-14 w-14 rounded-full"
-                onClick={resetTimer}
-              >
-                <RotateCcw className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Task Link */}
-            <div className="mt-2 space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                {isFocusMode ? 'Select Task (Required for Focus)' : 'Link to Task (Optional)'}
-              </label>
-              <Select
-                value={timer.linkedTaskId || 'none'}
-                onValueChange={handleTaskLink}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a task..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {!isFocusMode && <SelectItem value="none">None</SelectItem>}
-                  {activeTasks.map((task) => (
-                    <SelectItem key={task.id} value={task.id}>
-                      {task.title}
-                    </SelectItem>
-                  ))}
-                  {activeTasks.length === 0 && (
-                    <SelectItem value="none" disabled>
-                      No active tasks available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-
-              {/* Inline alert when required */}
-              {isFocusMode && !hasLinkedTask && (
-                <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    A task must be selected to start a focus session. This links your focus time directly to the task.
-                  </span>
-                </div>
-              )}
-            </div>
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Required task warning */}
+          {isFocusMode && !hasLinkedTask && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                marginTop: '10px',
+                padding: '10px 12px',
+                background: '#fafafa',
+                boxShadow: 'rgba(0,0,0,0.06) 0px 0px 0px 1px',
+                borderRadius: '6px',
+              }}
+            >
+              <Info style={{ width: '13px', height: '13px', color: '#0a72ef', flexShrink: 0, marginTop: '1px' }} />
+              <span
+                style={{
+                  fontSize: '12px',
+                  lineHeight: 1.5,
+                  color: '#666666',
+                  fontFamily: "'Geist', Arial, sans-serif",
+                }}
+              >
+                A task must be selected to start a focus session.
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

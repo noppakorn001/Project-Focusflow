@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { Task } from '@/lib/store';
-import { Progress } from '@/components/ui/progress';
 
 interface ProjectProgressViewProps {
   tasks: Task[];
@@ -10,7 +9,6 @@ interface ProjectProgressViewProps {
 
 export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
   const projectGroups = useMemo(() => {
-    // Group all tasks (including completed) by project
     const groups: Record<string, { total: number; completed: number }> = {};
 
     for (const task of tasks) {
@@ -24,11 +22,9 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
       }
     }
 
-    // Filter out empty projects (safety check) and sort by name
     return Object.entries(groups)
       .filter(([, data]) => data.total > 0)
       .sort(([a], [b]) => {
-        // Put "No Project" last
         if (a === 'No Project') return 1;
         if (b === 'No Project') return -1;
         return a.localeCompare(b);
@@ -37,30 +33,127 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
 
   if (projectGroups.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-muted-foreground text-sm">
-        No projects defined. Add a Project field to your tasks to see progress here.
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '120px',
+          background: '#fafafa',
+          boxShadow: 'rgba(0,0,0,0.06) 0px 0px 0px 1px',
+          borderRadius: '8px',
+          textAlign: 'center',
+          padding: '24px',
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "'Geist', Arial, sans-serif",
+            fontSize: '13px',
+            color: '#808080',
+          }}
+        >
+          No projects defined. Add a Project field to your tasks to see progress here.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {projectGroups.map(([projectName, data]) => {
         const percentage = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+        const isComplete = percentage === 100;
+
         return (
-          <div key={projectName} className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium truncate max-w-[60%]">{projectName}</span>
-              <div className="flex items-center gap-3 text-muted-foreground shrink-0">
-                <span className="text-xs">
-                  {data.completed}/{data.total} tasks
+          <div key={projectName}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <span
+                  style={{
+                    fontFamily: "'Geist', Arial, sans-serif",
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    letterSpacing: '-0.14px',
+                    color: '#171717',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {projectName}
                 </span>
-                <span className="font-semibold tabular-nums text-foreground w-10 text-right">
+                {isComplete && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      background: '#ebf5ff',
+                      color: '#0068d6',
+                      borderRadius: '9999px',
+                      padding: '1px 8px',
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      fontFamily: "'Geist Mono', monospace",
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      flexShrink: 0,
+                    }}
+                  >
+                    DONE
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                <span
+                  style={{
+                    fontFamily: "'Geist Mono', monospace",
+                    fontSize: '12px',
+                    color: '#808080',
+                  }}
+                >
+                  {data.completed}/{data.total}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Geist', Arial, sans-serif",
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: isComplete ? '#0a72ef' : '#171717',
+                    minWidth: '36px',
+                    textAlign: 'right',
+                  }}
+                >
                   {percentage}%
                 </span>
               </div>
             </div>
-            <Progress value={percentage} className="h-2" />
+
+            {/* Progress track */}
+            <div
+              style={{
+                height: '4px',
+                background: '#ebebeb',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: `${percentage}%`,
+                  background: isComplete ? '#0a72ef' : '#171717',
+                  borderRadius: '9999px',
+                  transition: 'width 0.4s ease',
+                }}
+              />
+            </div>
           </div>
         );
       })}

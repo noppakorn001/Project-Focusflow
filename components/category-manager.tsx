@@ -198,13 +198,51 @@ export function CategoryManager() {
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
-            <Plus className="mr-2 h-4 w-4" /> Manage Categories
-          </Button>
+          <button
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#ffffff',
+              color: '#171717',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '7px 14px',
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: "'Geist', Arial, sans-serif",
+              cursor: 'pointer',
+              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+              transition: 'background 0.15s ease',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+          >
+            <Plus style={{ width: '13px', height: '13px' }} /> Manage Categories
+          </button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[480px] max-h-[90vh]">
+        <DialogContent
+          style={{
+            background: '#ffffff',
+            boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.12) 0px 16px 48px',
+            borderRadius: '12px',
+            border: 'none',
+            maxWidth: '480px',
+            maxHeight: '90vh',
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>Manage Categories</DialogTitle>
+            <DialogTitle
+              style={{
+                fontFamily: "'Geist', Arial, sans-serif",
+                fontSize: '20px',
+                fontWeight: 600,
+                letterSpacing: '-0.4px',
+                color: '#171717',
+              }}
+            >
+              Manage Categories
+            </DialogTitle>
           </DialogHeader>
 
           <ScrollArea className="max-h-[calc(90vh-80px)] pr-4">
@@ -216,21 +254,60 @@ export function CategoryManager() {
                     {categories.map((category) => {
                       const Icon = ICONS[category.icon as keyof typeof ICONS] || Star;
                       return (
-                        <div key={category.id} className="flex items-center justify-between rounded-md border p-2">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                              <Icon className="h-4 w-4" style={{ color: category.color }} />
+                        <div
+                          key={category.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: '#ffffff',
+                            boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                            borderRadius: '8px',
+                            padding: '8px 10px',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: `${category.color}18`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Icon style={{ width: '15px', height: '15px', color: category.color }} />
                             </div>
-                            <span className="font-medium">{category.name}</span>
+                            <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '14px', fontWeight: 500, color: '#171717' }}>
+                              {category.name}
+                            </span>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                          <button
                             onClick={() => handleDeleteCategory(category.id)}
                             disabled={categories.length <= 1}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: categories.length <= 1 ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: categories.length <= 1 ? 0.3 : 1,
+                              transition: 'background 0.15s ease',
+                              color: '#808080',
+                            }}
+                            onMouseEnter={(e) => { if (categories.length > 1) { (e.currentTarget as HTMLElement).style.background = '#fff0ef'; (e.currentTarget as HTMLElement).style.color = '#ff5b4f'; } }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#808080'; }}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                            <Trash2 style={{ width: '14px', height: '14px' }} />
+                          </button>
                         </div>
                       );
                     })}
@@ -240,10 +317,24 @@ export function CategoryManager() {
                 <div className="border-t pt-4 space-y-4">
                   <Label>Add New Category</Label>
                   <div className="grid gap-3">
-                    <Input
+                    <input
                       placeholder="Category Name"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: '#ffffff',
+                        boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '8px 12px',
+                        fontFamily: "'Geist', Arial, sans-serif",
+                        fontSize: '14px',
+                        color: '#171717',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
+                      onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
                     />
 
                     <div className="space-y-2">
@@ -301,7 +392,27 @@ export function CategoryManager() {
                       </div>
                     )}
 
-                    <Button onClick={handleAddCategory} className="mt-1">Add Category</Button>
+                    <button
+                      onClick={handleAddCategory}
+                      style={{
+                        width: '100%',
+                        marginTop: '4px',
+                        background: '#171717',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '10px 16px',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        fontFamily: "'Geist', Arial, sans-serif",
+                        cursor: 'pointer',
+                        transition: 'opacity 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
+                    >
+                      Add Category
+                    </button>
                   </div>
                 </div>
               </div>
