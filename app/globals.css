@@ -116,6 +116,13 @@
   --sidebar-accent-foreground: #ededed;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: hsla(212, 100%, 56%, 1);
+
+  /* Shadows for dark mode */
+  --shadow-border: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
+  --shadow-border-light: rgba(255, 255, 255, 0.05) 0px 0px 0px 1px;
+  --shadow-subtle: rgba(0, 0, 0, 0.5) 0px 2px 2px;
+  --shadow-card: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px 2px 2px, rgba(0, 0, 0, 0.5) 0px 8px 8px -8px, #1a1a1a 0px 0px 0px 1px;
+  --shadow-card-hover: rgba(255, 255, 255, 0.15) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px 4px 4px, rgba(0, 0, 0, 0.5) 0px 12px 12px -8px, #1a1a1a 0px 0px 0px 1px;
 }
 
 @theme inline {
@@ -206,7 +213,7 @@
 
 /* Shadow-as-border cards */
 .vk-card {
-  background: var(--vercel-white);
+  background: var(--card);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-card);
   border: none;
@@ -234,7 +241,7 @@
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -2.4px;
-  color: var(--vercel-black);
+  color: var(--foreground);
 }
 
 .vk-heading-xl {
@@ -243,7 +250,7 @@
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -2.4px;
-  color: var(--vercel-black);
+  color: var(--foreground);
 }
 
 .vk-heading-lg {
@@ -252,7 +259,7 @@
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -1.28px;
-  color: var(--vercel-black);
+  color: var(--foreground);
 }
 
 .vk-heading {
@@ -261,7 +268,7 @@
   font-weight: 600;
   line-height: 1.33;
   letter-spacing: -0.96px;
-  color: var(--vercel-black);
+  color: var(--foreground);
 }
 
 .vk-label {
@@ -270,7 +277,7 @@
   font-weight: 500;
   line-height: 1.5;
   letter-spacing: -0.32px;
-  color: var(--vercel-black);
+  color: var(--foreground);
 }
 
 .vk-body {
@@ -278,7 +285,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: var(--gray-600);
+  color: var(--muted-foreground);
 }
 
 .vk-caption {
@@ -286,7 +293,7 @@
   font-size: 12px;
   font-weight: 400;
   line-height: 1.33;
-  color: var(--gray-500);
+  color: var(--muted-foreground);
 }
 
 .vk-mono {
@@ -300,13 +307,13 @@
   font-weight: 500;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--gray-500);
+  color: var(--muted-foreground);
 }
 
 /* Button variants */
 .vk-btn-primary {
-  background: var(--vercel-black);
-  color: var(--vercel-white);
+  background: var(--primary);
+  color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-standard);
   padding: 8px 16px;
@@ -323,8 +330,8 @@
 }
 
 .vk-btn-ghost {
-  background: var(--vercel-white);
-  color: var(--vercel-black);
+  background: transparent;
+  color: var(--foreground);
   box-shadow: var(--shadow-border-light);
   border: none;
   border-radius: var(--radius-standard);
@@ -337,7 +344,7 @@
 }
 
 .vk-btn-ghost:hover {
-  background: var(--gray-50);
+  background: var(--muted);
 }
 
 /* Pill badge */
@@ -360,8 +367,8 @@
 }
 
 .vk-badge-neutral {
-  background: var(--gray-50);
-  color: var(--gray-600);
+  background: var(--muted);
+  color: var(--muted-foreground);
   box-shadow: var(--shadow-border-light);
 }
 
@@ -372,13 +379,13 @@
   letter-spacing: -2.4px;
   line-height: 1.05;
   font-family: 'Geist', Arial, sans-serif;
-  color: var(--vercel-black);
+  color: var(--foreground);
 }
 
 /* Section divider */
 .vk-divider {
   border: none;
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--border);
   margin: 0;
 }
 
@@ -393,7 +400,7 @@
   font-family: 'Geist', Arial, sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: var(--vercel-black);
+  color: var(--foreground);
   transition: box-shadow 0.15s ease;
 }
 
@@ -402,5 +409,5 @@
 }
 
 .vk-input::placeholder {
-  color: var(--gray-400);
+  color: var(--muted-foreground);
 }

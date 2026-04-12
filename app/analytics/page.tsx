@@ -33,13 +33,13 @@ const DOW_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Fri
 
 // Vercel chart tooltip style
 const ChartTooltipStyle = {
-  background: '#ffffff',
+  background: 'var(--card)',
   boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.08) 0px 8px 16px',
   border: 'none',
   borderRadius: '8px',
   fontSize: '13px',
   fontFamily: "'Geist', Arial, sans-serif",
-  color: '#171717',
+  color: 'var(--foreground)',
 };
 
 export default function AnalyticsPage() {
@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
   const totalFocusSeconds = tasks.reduce((acc, t) => acc + t.timeSpent, 0);
 
   const cardStyle = {
-    background: '#ffffff',
+    background: 'var(--card)',
     boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
     borderRadius: '8px',
     padding: '24px',
@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
             fontWeight: 600,
             letterSpacing: '-2.4px',
             lineHeight: 1.1,
-            color: '#171717',
+            color: 'var(--foreground)',
             margin: 0,
           }}
         >
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
             fontFamily: "'Geist', Arial, sans-serif",
             fontSize: '18px',
             fontWeight: 400,
-            color: '#4d4d4d',
+            color: 'var(--muted-foreground)',
             marginTop: '8px',
           }}
         >
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
               fontWeight: 500,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              color: '#666666',
+              color: 'var(--muted-foreground)',
             }}
           >
             FOCUS ACTIVITY — LAST 12 MONTHS
@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
         {/* Task Status Pie */}
         <div style={cardStyle}>
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
               TASK STATUS
             </span>
           </div>
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
                     ))}
                   </Pie>
                   <Tooltip contentStyle={ChartTooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: '12px', fontFamily: "'Geist', Arial, sans-serif", color: '#666666' }} />
+                  <Legend wrapperStyle={{ fontSize: '12px', fontFamily: "'Geist', Arial, sans-serif", color: 'var(--muted-foreground)' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
         {/* Weekly Completion Bar */}
         <div style={cardStyle}>
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
               TASKS COMPLETED THIS WEEK
             </span>
           </div>
@@ -206,7 +206,7 @@ export default function AnalyticsPage() {
         {/* Focus by Category */}
         <div style={cardStyle}>
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
               BY CATEGORY
             </span>
           </div>
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                     ))}
                   </Pie>
                   <Tooltip contentStyle={ChartTooltipStyle} formatter={(value) => `${formatDuration(Number(value) * 60)}`} />
-                  <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Geist', Arial, sans-serif", color: '#666666' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', fontFamily: "'Geist', Arial, sans-serif", color: 'var(--muted-foreground)' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -232,7 +232,7 @@ export default function AnalyticsPage() {
         {/* Completion Rate */}
         <div style={cardStyle}>
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
               COMPLETION RATE
             </span>
           </div>
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
         {/* Focus by Priority */}
         <div style={cardStyle}>
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#666666' }}>
+            <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
               BY PRIORITY
             </span>
           </div>
@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
 function EmptyChart({ message }: { message: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      <p style={{ fontSize: '13px', color: '#808080', fontFamily: "'Geist', Arial, sans-serif" }}>{message}</p>
+      <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', fontFamily: "'Geist', Arial, sans-serif" }}>{message}</p>
     </div>
   );
 }
@@ -357,7 +357,7 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
   return (
     <div
       style={{
-        background: '#ffffff',
+        background: 'var(--card)',
         boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
         borderRadius: '8px',
         padding: '24px',
@@ -374,7 +374,7 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
             fontWeight: 500,
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            color: '#666666',
+            color: 'var(--muted-foreground)',
           }}
         >
           SMART INSIGHTS
@@ -398,7 +398,7 @@ function SmartInsights({ tasks, sessionReflections, totalFocusSeconds }: SmartIn
                 fontFamily: "'Geist', Arial, sans-serif",
                 fontSize: '14px',
                 lineHeight: 1.6,
-                color: '#4d4d4d',
+                color: 'var(--muted-foreground)',
               }}
             >
               {insight}

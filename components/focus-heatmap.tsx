@@ -152,17 +152,17 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
                   <TooltipContent
                     side="top"
                     style={{
-                      background: '#ffffff',
+                      background: 'var(--card)',
                       boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.08) 0px 8px 16px',
                       border: 'none',
                       borderRadius: '6px',
                       padding: '8px 12px',
                     }}
                   >
-                    <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '12px', fontWeight: 600, color: '#171717', display: 'block' }}>
+                    <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '12px', fontWeight: 600, color: 'var(--foreground)', display: 'block' }}>
                       {format(cell.date, 'EEEE, MMM d, yyyy')}
                     </span>
-                    <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '11px', color: '#666666' }}>
+                    <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '11px', color: 'var(--muted-foreground)' }}>
                       {cell.minutes > 0 ? `${cell.minutes} min focused` : 'No focus time'}
                     </span>
                   </TooltipContent>
@@ -186,7 +186,7 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
           style={{
             fontFamily: "'Geist Mono', monospace",
             fontSize: '10px',
-            color: '#808080',
+            color: 'var(--muted-foreground)',
             letterSpacing: '0.04em',
           }}
         >
@@ -201,7 +201,7 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
           style={{
             fontFamily: "'Geist Mono', monospace",
             fontSize: '10px',
-            color: '#808080',
+            color: 'var(--muted-foreground)',
             letterSpacing: '0.04em',
           }}
         >

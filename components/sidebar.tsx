@@ -71,7 +71,7 @@ export function SidebarContent() {
                 background: isActive ? '#f3f3f3' : 'transparent',
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
-                boxShadow: isActive ? 'rgb(235,235,235) 0px 0px 0px 1px' : 'none',
+                boxShadow: isActive ? 'var(--shadow-border-light)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
@@ -114,10 +114,10 @@ export function SidebarContent() {
             width: '100%',
             padding: '8px 10px',
             borderRadius: '8px',
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: syncStatus === 'error'
               ? 'rgba(255,91,79,0.3) 0px 0px 0px 1px'
-              : 'rgb(235,235,235) 0px 0px 0px 1px',
+              : 'var(--shadow-border-light)',
             border: 'none',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
@@ -130,7 +130,7 @@ export function SidebarContent() {
           ) : syncStatus === 'success' ? (
             <CheckCircle2 style={{ width: '14px', height: '14px', color: '#0a72ef' }} />
           ) : (
-            <Cloud style={{ width: '14px', height: '14px', color: '#808080' }} />
+            <Cloud style={{ width: '14px', height: '14px', color: 'var(--muted-foreground)' }} />
           )}
           <span
             style={{
@@ -159,7 +159,7 @@ export function Sidebar() {
     <div
       className="flex h-screen w-64 flex-col px-4 py-6"
       style={{
-        background: '#ffffff',
+        background: 'var(--card)',
         boxShadow: '1px 0 0 0 rgba(0,0,0,0.08)',
       }}
     >

@@ -39,7 +39,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
           alignItems: 'center',
           justifyContent: 'center',
           height: '120px',
-          background: '#fafafa',
+          background: 'var(--muted)',
           boxShadow: 'rgba(0,0,0,0.06) 0px 0px 0px 1px',
           borderRadius: '8px',
           textAlign: 'center',
@@ -50,7 +50,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
           style={{
             fontFamily: "'Geist', Arial, sans-serif",
             fontSize: '13px',
-            color: '#808080',
+            color: 'var(--muted-foreground)',
           }}
         >
           No projects defined. Add a Project field to your tasks to see progress here.
@@ -82,7 +82,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
                     fontSize: '14px',
                     fontWeight: 600,
                     letterSpacing: '-0.14px',
-                    color: '#171717',
+                    color: 'var(--foreground)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -115,7 +115,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
                   style={{
                     fontFamily: "'Geist Mono', monospace",
                     fontSize: '12px',
-                    color: '#808080',
+                    color: 'var(--muted-foreground)',
                   }}
                 >
                   {data.completed}/{data.total}

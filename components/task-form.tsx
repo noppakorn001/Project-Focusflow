@@ -114,21 +114,21 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     display: 'block',
     fontSize: '13px',
     fontWeight: 500,
-    color: '#171717',
+    color: 'var(--foreground)',
     marginBottom: '6px',
     fontFamily: "'Geist', Arial, sans-serif",
   };
 
   const inputBaseStyle = {
     width: '100%',
-    background: '#ffffff',
-    boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+    background: 'var(--card)',
+    boxShadow: 'var(--shadow-border)',
     border: 'none',
     borderRadius: '6px',
     padding: '8px 12px',
     fontFamily: "'Geist', Arial, sans-serif",
     fontSize: '14px',
-    color: '#171717',
+    color: 'var(--foreground)',
     outline: 'none',
     transition: 'box-shadow 0.15s ease',
   };
@@ -148,8 +148,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                   placeholder="Task title"
                   {...field}
                   style={inputBaseStyle}
-                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
                 />
               </FormControl>
               <FormMessage style={{ fontSize: '12px', color: '#ff5b4f', marginTop: '4px' }} />
@@ -164,15 +164,15 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           render={({ field }) => (
             <FormItem>
               <label style={labelStyle}>
-                Project <span style={{ fontWeight: 400, color: '#808080' }}>(Optional)</span>
+                Project <span style={{ fontWeight: 400, color: 'var(--muted-foreground)' }}>(Optional)</span>
               </label>
               <FormControl>
                 <input
                   placeholder="e.g. Website Redesign, Q2 Launch"
                   {...field}
                   style={inputBaseStyle}
-                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
                 />
               </FormControl>
             </FormItem>
@@ -187,7 +187,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
             render={({ field }) => (
               <FormItem>
                 <label style={labelStyle}>Category</label>
-                <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="border-0 shadow-none bg-white" style={{ boxShadow: 'none', border: 'none' }}>
@@ -216,7 +216,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
             render={({ field }) => (
               <FormItem>
                 <label style={labelStyle}>Priority</label>
-                <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="border-0 shadow-none bg-white" style={{ boxShadow: 'none', border: 'none' }}>
@@ -258,7 +258,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                       }}
                     >
                       {field.value ? format(field.value, 'PPP') : 'Pick a date'}
-                      <CalendarIcon style={{ width: '14px', height: '14px', color: '#808080', flexShrink: 0 }} />
+                      <CalendarIcon style={{ width: '14px', height: '14px', color: 'var(--muted-foreground)', flexShrink: 0 }} />
                     </button>
                   </FormControl>
                 </PopoverTrigger>
@@ -290,8 +290,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                   rows={3}
                   {...field}
                   style={{ ...inputBaseStyle, resize: 'none' }}
-                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
                 />
               </FormControl>
             </FormItem>
@@ -304,14 +304,14 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <label style={labelStyle}>Tags <span style={{ fontWeight: 400, color: '#808080' }}>(comma separated)</span></label>
+              <label style={labelStyle}>Tags <span style={{ fontWeight: 400, color: 'var(--muted-foreground)' }}>(comma separated)</span></label>
               <FormControl>
                 <input
                   placeholder="work, personal, urgent"
                   {...field}
                   style={inputBaseStyle}
-                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                  onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                  onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
                 />
               </FormControl>
             </FormItem>
@@ -324,8 +324,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
             type="submit"
             style={{
               flex: 1,
-              background: '#171717',
-              color: '#ffffff',
+              background: 'var(--primary)',
+              color: 'var(--primary-foreground)',
               border: 'none',
               borderRadius: '6px',
               padding: '10px 16px',
@@ -345,8 +345,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               type="button"
               onClick={() => handleAddToCalendar(task)}
               style={{
-                background: '#ffffff',
-                color: '#171717',
+                background: 'var(--card)',
+                color: 'var(--foreground)',
                 border: 'none',
                 borderRadius: '6px',
                 padding: '10px 14px',
@@ -354,7 +354,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 fontWeight: 500,
                 fontFamily: "'Geist', Arial, sans-serif",
                 cursor: 'pointer',
-                boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                boxShadow: 'var(--shadow-border-light)',
                 transition: 'background 0.15s ease',
                 whiteSpace: 'nowrap',
               }}

@@ -10,22 +10,22 @@ import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 
 const inputStyle = {
   width: '100%',
-  background: '#ffffff',
-  boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+  background: 'var(--background)',
+  boxShadow: 'var(--shadow-border)',
   border: 'none',
   borderRadius: '6px',
   padding: '8px 12px',
   fontFamily: "'Geist', Arial, sans-serif",
   fontSize: '14px',
   fontWeight: 400,
-  color: '#171717',
+  color: 'var(--foreground)',
   outline: 'none',
   transition: 'box-shadow 0.15s ease',
 };
 
 const cardStyle = {
-  background: '#ffffff',
-  boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
+  background: 'var(--card)',
+  boxShadow: 'var(--shadow-card)',
   borderRadius: '8px',
   padding: '28px',
   border: 'none',
@@ -36,21 +36,20 @@ const sectionTitleStyle = {
   fontSize: '18px',
   fontWeight: 600,
   letterSpacing: '-0.36px',
-  color: '#171717',
+  color: 'var(--foreground)',
   margin: '0 0 4px 0',
 };
 
 const sectionDescStyle = {
   fontFamily: "'Geist', Arial, sans-serif",
   fontSize: '13px',
-  color: '#666666',
+  color: 'var(--muted-foreground)',
   margin: 0,
 };
 
 export default function SettingsPage() {
-  const { settings, updateSettings, setSyncStatus } = useStore();
+  const { settings, darkMode, updateSettings, setDarkMode, setSyncStatus } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { confirm, dialogProps } = useConfirmDialog();
 
   useEffect(() => {
@@ -111,9 +110,7 @@ export default function SettingsPage() {
   };
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    setDarkMode(!darkMode);
   };
 
   return (
@@ -127,13 +124,13 @@ export default function SettingsPage() {
             fontWeight: 600,
             letterSpacing: '-2.4px',
             lineHeight: 1.1,
-            color: '#171717',
+            color: 'var(--foreground)',
             margin: 0,
           }}
         >
           Settings
         </h1>
-        <p style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '18px', fontWeight: 400, color: '#4d4d4d', marginTop: '8px' }}>
+        <p style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '18px', fontWeight: 400, color: 'var(--muted-foreground)', marginTop: '8px' }}>
           Customize your experience.
         </p>
       </div>
@@ -150,7 +147,7 @@ export default function SettingsPage() {
             <div>
               <label
                 htmlFor="focus-duration"
-                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#171717', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
+                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--foreground)', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
               >
                 Focus (min)
               </label>
@@ -160,14 +157,14 @@ export default function SettingsPage() {
                 value={settings.focusDuration}
                 onChange={(e) => updateSettings({ focusDuration: Number(e.target.value) })}
                 style={inputStyle}
-                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
               />
             </div>
             <div>
               <label
                 htmlFor="short-break"
-                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#171717', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
+                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--foreground)', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
               >
                 Short Break (min)
               </label>
@@ -177,14 +174,14 @@ export default function SettingsPage() {
                 value={settings.shortBreakDuration}
                 onChange={(e) => updateSettings({ shortBreakDuration: Number(e.target.value) })}
                 style={inputStyle}
-                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
               />
             </div>
             <div>
               <label
                 htmlFor="long-break"
-                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#171717', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
+                style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--foreground)', marginBottom: '8px', fontFamily: "'Geist', sans-serif" }}
               >
                 Long Break (min)
               </label>
@@ -194,19 +191,19 @@ export default function SettingsPage() {
                 value={settings.longBreakDuration}
                 onChange={(e) => updateSettings({ longBreakDuration: Number(e.target.value) })}
                 style={inputStyle}
-                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
               />
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid #ebebeb', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <Label htmlFor="auto-start-breaks" style={{ fontSize: '14px', fontWeight: 500, color: '#171717', display: 'block' }}>
+                <Label htmlFor="auto-start-breaks" style={{ fontSize: '14px', fontWeight: 500, color: 'var(--foreground)', display: 'block' }}>
                   Auto-start Breaks
                 </Label>
-                <p style={{ fontSize: '12px', color: '#666666', margin: '2px 0 0 0' }}>Automatically start break timers</p>
+                <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', margin: '2px 0 0 0' }}>Automatically start break timers</p>
               </div>
               <Switch
                 id="auto-start-breaks"
@@ -217,10 +214,10 @@ export default function SettingsPage() {
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <Label htmlFor="auto-start-pomodoros" style={{ fontSize: '14px', fontWeight: 500, color: '#171717', display: 'block' }}>
+                <Label htmlFor="auto-start-pomodoros" style={{ fontSize: '14px', fontWeight: 500, color: 'var(--foreground)', display: 'block' }}>
                   Auto-start Pomodoros
                 </Label>
-                <p style={{ fontSize: '12px', color: '#666666', margin: '2px 0 0 0' }}>Automatically start focus sessions</p>
+                <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', margin: '2px 0 0 0' }}>Automatically start focus sessions</p>
               </div>
               <Switch
                 id="auto-start-pomodoros"
@@ -245,21 +242,21 @@ export default function SettingsPage() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '8px',
-                  background: isAuthenticated ? '#ebf5ff' : '#fafafa',
-                  boxShadow: isAuthenticated ? 'rgba(10,114,239,0.2) 0px 0px 0px 1px' : 'rgb(235,235,235) 0px 0px 0px 1px',
+                  background: isAuthenticated ? 'var(--badge-blue-bg)' : 'var(--muted)',
+                  boxShadow: isAuthenticated ? 'rgba(10,114,239,0.2) 0px 0px 0px 1px' : 'var(--shadow-border-light)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
-                <Cloud style={{ width: '18px', height: '18px', color: isAuthenticated ? '#0a72ef' : '#808080' }} />
+                <Cloud style={{ width: '18px', height: '18px', color: isAuthenticated ? 'var(--badge-blue-text)' : 'var(--muted-foreground)' }} />
               </div>
               <div>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#171717', display: 'block', fontFamily: "'Geist', sans-serif" }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--foreground)', display: 'block', fontFamily: "'Geist', sans-serif" }}>
                   Google Drive
                 </span>
-                <span style={{ fontSize: '12px', color: isAuthenticated ? '#0a72ef' : '#666666', fontFamily: "'Geist', sans-serif" }}>
+                <span style={{ fontSize: '12px', color: isAuthenticated ? 'var(--badge-blue-text)' : 'var(--muted-foreground)', fontFamily: "'Geist', sans-serif" }}>
                   {isAuthenticated ? 'Connected' : 'Not connected'}
                 </span>
               </div>
@@ -272,8 +269,8 @@ export default function SettingsPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#fff0ef',
-                  color: '#ff5b4f',
+                  background: 'var(--destructive)',
+                  color: 'var(--destructive-foreground)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '8px 16px',
@@ -296,8 +293,8 @@ export default function SettingsPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#171717',
-                  color: '#ffffff',
+                  background: 'var(--primary)',
+                  color: 'var(--primary-foreground)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '8px 16px',
@@ -330,28 +327,28 @@ export default function SettingsPage() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '8px',
-                  background: '#fafafa',
-                  boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                  background: 'var(--muted)',
+                  boxShadow: 'var(--shadow-border-light)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {theme === 'dark'
-                  ? <Moon style={{ width: '18px', height: '18px', color: '#171717' }} />
-                  : <Sun style={{ width: '18px', height: '18px', color: '#808080' }} />
+                {darkMode
+                  ? <Moon style={{ width: '18px', height: '18px', color: 'var(--foreground)' }} />
+                  : <Sun style={{ width: '18px', height: '18px', color: 'var(--muted-foreground)' }} />
                 }
               </div>
               <div>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#171717', display: 'block', fontFamily: "'Geist', sans-serif" }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--foreground)', display: 'block', fontFamily: "'Geist', sans-serif" }}>
                   Dark Mode
                 </span>
-                <span style={{ fontSize: '12px', color: '#666666', fontFamily: "'Geist', sans-serif" }}>
-                  {theme === 'dark' ? 'Currently enabled' : 'Currently disabled'}
+                <span style={{ fontSize: '12px', color: 'var(--muted-foreground)', fontFamily: "'Geist', sans-serif" }}>
+                  {darkMode ? 'Currently enabled' : 'Currently disabled'}
                 </span>
               </div>
             </div>
-            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+            <Switch checked={darkMode} onCheckedChange={toggleTheme} />
           </div>
         </div>
       </div>

@@ -66,7 +66,7 @@ export default function Dashboard() {
             fontWeight: 600,
             letterSpacing: '-2.4px',
             lineHeight: 1.1,
-            color: '#171717',
+            color: 'var(--foreground)',
             margin: 0,
           }}
         >
@@ -78,7 +78,7 @@ export default function Dashboard() {
             fontSize: '18px',
             fontWeight: 400,
             lineHeight: 1.6,
-            color: '#4d4d4d',
+            color: 'var(--muted-foreground)',
             marginTop: '8px',
           }}
         >
@@ -98,7 +98,7 @@ export default function Dashboard() {
         {/* Total Tasks */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '24px',
@@ -106,10 +106,10 @@ export default function Dashboard() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 500, color: '#666666', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
+            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted-foreground)', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
               TOTAL TASKS
             </span>
-            <CheckCircle2 style={{ width: '16px', height: '16px', color: '#808080' }} />
+            <CheckCircle2 style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
           </div>
           <div
             style={{
@@ -118,12 +118,12 @@ export default function Dashboard() {
               fontWeight: 600,
               letterSpacing: '-2.4px',
               lineHeight: 1.0,
-              color: '#171717',
+              color: 'var(--foreground)',
             }}
           >
             {tasks.length}
           </div>
-          <p style={{ fontSize: '13px', color: '#666666', marginTop: '6px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '6px' }}>
             {completedTasks.length} completed
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function Dashboard() {
         {/* Focus Time */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '24px',
@@ -139,10 +139,10 @@ export default function Dashboard() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 500, color: '#666666', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
+            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted-foreground)', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
               FOCUS TIME
             </span>
-            <Clock style={{ width: '16px', height: '16px', color: '#808080' }} />
+            <Clock style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
           </div>
           <div
             style={{
@@ -151,12 +151,12 @@ export default function Dashboard() {
               fontWeight: 600,
               letterSpacing: '-2.0px',
               lineHeight: 1.0,
-              color: '#171717',
+              color: 'var(--foreground)',
             }}
           >
             {formatDuration(totalFocusSeconds)}
           </div>
-          <p style={{ fontSize: '13px', color: '#666666', marginTop: '6px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '6px' }}>
             Total logged
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
         {/* Completion Rate */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '24px',
@@ -172,10 +172,10 @@ export default function Dashboard() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 500, color: '#666666', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
+            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted-foreground)', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
               COMPLETION
             </span>
-            <Zap style={{ width: '16px', height: '16px', color: '#808080' }} />
+            <Zap style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
           </div>
           <div
             style={{
@@ -184,12 +184,12 @@ export default function Dashboard() {
               fontWeight: 600,
               letterSpacing: '-2.4px',
               lineHeight: 1.0,
-              color: '#171717',
+              color: 'var(--foreground)',
             }}
           >
             {completionRate}%
           </div>
-          <p style={{ fontSize: '13px', color: '#666666', marginTop: '6px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '6px' }}>
             Task completion rate
           </p>
         </div>
@@ -197,7 +197,7 @@ export default function Dashboard() {
         {/* Active Tasks */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '24px',
@@ -205,10 +205,10 @@ export default function Dashboard() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 500, color: '#666666', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
+            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted-foreground)', letterSpacing: '0.02em', textTransform: 'uppercase', fontFamily: "'Geist Mono', monospace" }}>
               IN PROGRESS
             </span>
-            <Play style={{ width: '16px', height: '16px', color: '#808080' }} />
+            <Play style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
           </div>
           <div
             style={{
@@ -217,12 +217,12 @@ export default function Dashboard() {
               fontWeight: 600,
               letterSpacing: '-2.4px',
               lineHeight: 1.0,
-              color: '#171717',
+              color: 'var(--foreground)',
             }}
           >
             {inProgressTasks.length}
           </div>
-          <p style={{ fontSize: '13px', color: '#666666', marginTop: '6px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '6px' }}>
             Tasks in progress
           </p>
         </div>
@@ -240,7 +240,7 @@ export default function Dashboard() {
         {/* Current Focus Timer */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '32px',
@@ -254,13 +254,13 @@ export default function Dashboard() {
                 fontSize: '18px',
                 fontWeight: 600,
                 letterSpacing: '-0.36px',
-                color: '#171717',
+                color: 'var(--foreground)',
                 margin: 0,
               }}
             >
               Current Focus
             </h2>
-            <p style={{ fontSize: '13px', color: '#666666', marginTop: '4px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '4px' }}>
               Quick timer control
             </p>
           </div>
@@ -315,7 +315,7 @@ export default function Dashboard() {
                   fontWeight: 500,
                   letterSpacing: '0.06em',
                   textTransform: 'uppercase',
-                  color: '#808080',
+                  color: 'var(--muted-foreground)',
                 }}
               >
                 {timer.mode.replace('-', ' ')}
@@ -330,8 +330,8 @@ export default function Dashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: '#171717',
-                  color: '#ffffff',
+                  background: 'var(--primary)',
+                  color: 'var(--primary-foreground)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '10px 24px',
@@ -359,15 +359,15 @@ export default function Dashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#ffffff',
-                  color: '#171717',
+                  background: 'var(--card)',
+                  color: 'var(--foreground)',
                   textDecoration: 'none',
                   borderRadius: '6px',
                   padding: '10px 20px',
                   fontSize: '14px',
                   fontWeight: 500,
                   fontFamily: "'Geist', Arial, sans-serif",
-                  boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                  boxShadow: 'var(--shadow-border-light)',
                   transition: 'background 0.15s ease',
                 }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
@@ -382,7 +382,7 @@ export default function Dashboard() {
         {/* Recent Tasks */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '32px',
@@ -397,13 +397,13 @@ export default function Dashboard() {
                   fontSize: '18px',
                   fontWeight: 600,
                   letterSpacing: '-0.36px',
-                  color: '#171717',
+                  color: 'var(--foreground)',
                   margin: 0,
                 }}
               >
                 Active Tasks
               </h2>
-              <p style={{ fontSize: '13px', color: '#666666', marginTop: '4px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '4px' }}>
                 {activeTasks.length} remaining
               </p>
             </div>
@@ -458,7 +458,7 @@ export default function Dashboard() {
                       fontFamily: "'Geist', Arial, sans-serif",
                       fontSize: '14px',
                       fontWeight: 500,
-                      color: '#171717',
+                      color: 'var(--foreground)',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -468,7 +468,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <Link href="/tasks">
-                  <ArrowRight style={{ width: '14px', height: '14px', color: '#808080', flexShrink: 0 }} />
+                  <ArrowRight style={{ width: '14px', height: '14px', color: 'var(--muted-foreground)', flexShrink: 0 }} />
                 </Link>
               </div>
             ))}
@@ -489,8 +489,8 @@ export default function Dashboard() {
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
-                    background: '#fafafa',
-                    boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                    background: 'var(--muted)',
+                    boxShadow: 'var(--shadow-border-light)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -499,8 +499,8 @@ export default function Dashboard() {
                 >
                   <CheckCircle2 style={{ width: '18px', height: '18px', color: '#0a72ef' }} />
                 </div>
-                <p style={{ fontSize: '14px', fontWeight: 500, color: '#171717', margin: 0 }}>All clear</p>
-                <p style={{ fontSize: '13px', color: '#666666', marginTop: '4px' }}>No active tasks right now.</p>
+                <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--foreground)', margin: 0 }}>All clear</p>
+                <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', marginTop: '4px' }}>No active tasks right now.</p>
               </div>
             )}
           </div>

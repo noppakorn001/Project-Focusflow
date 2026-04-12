@@ -120,7 +120,7 @@ export default function TasksPage() {
               fontWeight: 600,
               letterSpacing: '-2.4px',
               lineHeight: 1.1,
-              color: '#171717',
+              color: 'var(--foreground)',
               margin: 0,
             }}
           >
@@ -131,7 +131,7 @@ export default function TasksPage() {
               fontFamily: "'Geist', Arial, sans-serif",
               fontSize: '18px',
               fontWeight: 400,
-              color: '#4d4d4d',
+              color: 'var(--muted-foreground)',
               marginTop: '8px',
             }}
           >
@@ -149,8 +149,8 @@ export default function TasksPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#171717',
-                  color: '#ffffff',
+                  background: 'var(--primary)',
+                  color: 'var(--primary-foreground)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '8px 16px',
@@ -167,7 +167,7 @@ export default function TasksPage() {
                 Add Task
               </button>
             </DialogTrigger>
-            <DialogContent style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 8px 32px', borderRadius: '12px', border: 'none' }}>
+            <DialogContent style={{ background: 'var(--card)', boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 8px 32px', borderRadius: '12px', border: 'none' }}>
               <DialogHeader>
                 <DialogTitle
                   style={{
@@ -175,7 +175,7 @@ export default function TasksPage() {
                     fontSize: '24px',
                     fontWeight: 600,
                     letterSpacing: '-0.96px',
-                    color: '#171717',
+                    color: 'var(--foreground)',
                   }}
                 >
                   {editingTask ? 'Edit Task' : 'Add New Task'}
@@ -197,8 +197,8 @@ export default function TasksPage() {
           gap: '4px',
           marginBottom: '24px',
           padding: '4px',
-          background: '#fafafa',
-          boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+          background: 'var(--muted)',
+          boxShadow: 'var(--shadow-border-light)',
           borderRadius: '64px',
           width: 'fit-content',
         }}
@@ -247,7 +247,7 @@ export default function TasksPage() {
                 transform: 'translateY(-50%)',
                 width: '14px',
                 height: '14px',
-                color: '#808080',
+                color: 'var(--muted-foreground)',
               }}
             />
             <Input
@@ -256,19 +256,19 @@ export default function TasksPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 paddingLeft: '32px',
-                background: '#ffffff',
-                boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+                background: 'var(--card)',
+                boxShadow: 'var(--shadow-border)',
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '14px',
-                color: '#171717',
+                color: 'var(--foreground)',
                 height: '36px',
               }}
             />
           </div>
 
           {/* Status filter */}
-          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+          <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
             <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as TaskStatus | 'all')}>
               <SelectTrigger className="border-0 shadow-none bg-white h-9 text-sm w-[140px]" style={{ boxShadow: 'none', border: 'none' }}>
                 <SelectValue placeholder="Status" />
@@ -283,7 +283,7 @@ export default function TasksPage() {
           </div>
 
           {/* Priority filter */}
-          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+          <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
             <Select value={filterPriority} onValueChange={(v) => setFilterPriority(v as TaskPriority | 'all')}>
               <SelectTrigger className="border-0 shadow-none bg-white h-9 text-sm w-[140px]" style={{ boxShadow: 'none', border: 'none' }}>
                 <SelectValue placeholder="Priority" />
@@ -298,7 +298,7 @@ export default function TasksPage() {
           </div>
 
           {/* Category filter */}
-          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+          <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
             <Select value={filterCategory} onValueChange={(v) => setFilterCategory(v)}>
               <SelectTrigger className="border-0 shadow-none bg-white h-9 text-sm w-[140px]" style={{ boxShadow: 'none', border: 'none' }}>
                 <SelectValue placeholder="Category" />
@@ -325,7 +325,7 @@ export default function TasksPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '240px',
-                background: '#ffffff',
+                background: 'var(--card)',
                 boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
                 borderRadius: '8px',
                 textAlign: 'center',
@@ -336,8 +336,8 @@ export default function TasksPage() {
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  background: '#fafafa',
-                  boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                  background: 'var(--muted)',
+                  boxShadow: 'var(--shadow-border-light)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -352,13 +352,13 @@ export default function TasksPage() {
                   fontSize: '16px',
                   fontWeight: 600,
                   letterSpacing: '-0.32px',
-                  color: '#171717',
+                  color: 'var(--foreground)',
                   margin: '0 0 6px 0',
                 }}
               >
                 No tasks found
               </h3>
-              <p style={{ fontSize: '14px', color: '#666666', margin: 0 }}>
+              <p style={{ fontSize: '14px', color: 'var(--muted-foreground)', margin: 0 }}>
                 Create a new task to get started.
               </p>
             </div>
@@ -374,7 +374,7 @@ export default function TasksPage() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '16px',
-                    background: '#ffffff',
+                    background: 'var(--card)',
                     boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
                     borderRadius: '8px',
                     padding: '16px 20px',
@@ -484,9 +484,9 @@ export default function TasksPage() {
                               padding: '1px 8px',
                               fontSize: '11px',
                               fontWeight: 500,
-                              background: '#fafafa',
-                              color: '#666666',
-                              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                              background: 'var(--muted)',
+                              color: 'var(--muted-foreground)',
+                              boxShadow: 'var(--shadow-border-light)',
                             }}
                           >
                             {task.project}
@@ -496,7 +496,7 @@ export default function TasksPage() {
 
                       {/* Description */}
                       {task.description && (
-                        <p style={{ fontSize: '13px', color: '#666666', margin: '2px 0 6px', lineHeight: 1.4 }}>
+                        <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', margin: '2px 0 6px', lineHeight: 1.4 }}>
                           {task.description}
                         </p>
                       )}
@@ -515,7 +515,7 @@ export default function TasksPage() {
                               fontWeight: 500,
                               background: isOverdue ? '#fff0ef' : '#fafafa',
                               color: isOverdue ? '#ff5b4f' : '#666666',
-                              boxShadow: isOverdue ? 'rgba(255,91,79,0.2) 0px 0px 0px 1px' : 'rgb(235,235,235) 0px 0px 0px 1px',
+                              boxShadow: isOverdue ? 'rgba(255,91,79,0.2) 0px 0px 0px 1px' : 'var(--shadow-border-light)',
                             }}
                           >
                             <CalendarIcon style={{ width: '10px', height: '10px' }} />
@@ -532,9 +532,9 @@ export default function TasksPage() {
                               padding: '2px 8px',
                               fontSize: '11px',
                               fontWeight: 500,
-                              background: '#fafafa',
-                              color: '#666666',
-                              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                              background: 'var(--muted)',
+                              color: 'var(--muted-foreground)',
+                              boxShadow: 'var(--shadow-border-light)',
                             }}
                           >
                             {tag}
@@ -581,7 +581,7 @@ export default function TasksPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         transition: 'background 0.15s ease',
-                        color: '#808080',
+                        color: 'var(--muted-foreground)',
                       }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#fafafa'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
@@ -601,7 +601,7 @@ export default function TasksPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         transition: 'background 0.15s ease',
-                        color: '#808080',
+                        color: 'var(--muted-foreground)',
                       }}
                       onMouseEnter={(e) => {
                         (e.currentTarget as HTMLElement).style.background = '#fff0ef';
@@ -631,7 +631,7 @@ export default function TasksPage() {
       {activeTab === 'by-project' && (
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card)',
             boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
             borderRadius: '8px',
             padding: '28px',
@@ -644,7 +644,7 @@ export default function TasksPage() {
               fontSize: '18px',
               fontWeight: 600,
               letterSpacing: '-0.36px',
-              color: '#171717',
+              color: 'var(--foreground)',
               margin: '0 0 20px 0',
             }}
           >

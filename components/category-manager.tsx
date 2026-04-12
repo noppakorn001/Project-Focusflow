@@ -203,8 +203,8 @@ export function CategoryManager() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#ffffff',
-              color: '#171717',
+              background: 'var(--card)',
+              color: 'var(--foreground)',
               border: 'none',
               borderRadius: '6px',
               padding: '7px 14px',
@@ -212,7 +212,7 @@ export function CategoryManager() {
               fontWeight: 500,
               fontFamily: "'Geist', Arial, sans-serif",
               cursor: 'pointer',
-              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+              boxShadow: 'var(--shadow-border-light)',
               transition: 'background 0.15s ease',
             }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
@@ -223,8 +223,8 @@ export function CategoryManager() {
         </DialogTrigger>
         <DialogContent
           style={{
-            background: '#ffffff',
-            boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.12) 0px 16px 48px',
+            background: 'var(--card)',
+            boxShadow: 'var(--shadow-card-hover)',
             borderRadius: '12px',
             border: 'none',
             maxWidth: '480px',
@@ -238,7 +238,7 @@ export function CategoryManager() {
                 fontSize: '20px',
                 fontWeight: 600,
                 letterSpacing: '-0.4px',
-                color: '#171717',
+                color: 'var(--foreground)',
               }}
             >
               Manage Categories
@@ -260,8 +260,8 @@ export function CategoryManager() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            background: '#ffffff',
-                            boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+                            background: 'var(--card)',
+                            boxShadow: 'var(--shadow-border-light)',
                             borderRadius: '8px',
                             padding: '8px 10px',
                             marginBottom: '6px',
@@ -282,7 +282,7 @@ export function CategoryManager() {
                             >
                               <Icon style={{ width: '15px', height: '15px', color: category.color }} />
                             </div>
-                            <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '14px', fontWeight: 500, color: '#171717' }}>
+                            <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '14px', fontWeight: 500, color: 'var(--foreground)' }}>
                               {category.name}
                             </span>
                           </div>
@@ -301,7 +301,7 @@ export function CategoryManager() {
                               justifyContent: 'center',
                               opacity: categories.length <= 1 ? 0.3 : 1,
                               transition: 'background 0.15s ease',
-                              color: '#808080',
+                              color: 'var(--muted-foreground)',
                             }}
                             onMouseEnter={(e) => { if (categories.length > 1) { (e.currentTarget as HTMLElement).style.background = '#fff0ef'; (e.currentTarget as HTMLElement).style.color = '#ff5b4f'; } }}
                             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#808080'; }}
@@ -323,18 +323,18 @@ export function CategoryManager() {
                       onChange={(e) => setNewCategoryName(e.target.value)}
                       style={{
                         width: '100%',
-                        background: '#ffffff',
-                        boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+                        background: 'var(--card)',
+                        boxShadow: 'var(--shadow-border)',
                         border: 'none',
                         borderRadius: '6px',
                         padding: '8px 12px',
                         fontFamily: "'Geist', Arial, sans-serif",
                         fontSize: '14px',
-                        color: '#171717',
+                        color: 'var(--foreground)',
                         outline: 'none',
                       }}
-                      onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-                      onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+                      onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+                      onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
                     />
 
                     <div className="space-y-2">
@@ -397,8 +397,8 @@ export function CategoryManager() {
                       style={{
                         width: '100%',
                         marginTop: '4px',
-                        background: '#171717',
-                        color: '#ffffff',
+                        background: 'var(--primary)',
+                        color: 'var(--primary-foreground)',
                         border: 'none',
                         borderRadius: '6px',
                         padding: '10px 16px',

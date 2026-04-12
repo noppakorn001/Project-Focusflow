@@ -73,8 +73,8 @@ function CircularProgress({
 
 const modeConfig = {
   focus: { label: 'Focus', icon: Brain, color: '#0a72ef', bgActive: '#171717', textActive: '#ffffff' },
-  'short-break': { label: 'Short Break', icon: Coffee, color: '#666666', bgActive: '#171717', textActive: '#ffffff' },
-  'long-break': { label: 'Long Break', icon: Armchair, color: '#666666', bgActive: '#171717', textActive: '#ffffff' },
+  'short-break': { label: 'Short Break', icon: Coffee, color: 'var(--muted-foreground)', bgActive: '#171717', textActive: '#ffffff' },
+  'long-break': { label: 'Long Break', icon: Armchair, color: 'var(--muted-foreground)', bgActive: '#171717', textActive: '#ffffff' },
 };
 
 export default function TimerPage() {
@@ -147,7 +147,7 @@ export default function TimerPage() {
             fontWeight: 600,
             letterSpacing: '-2.4px',
             lineHeight: 1.1,
-            color: '#171717',
+            color: 'var(--foreground)',
             margin: 0,
           }}
         >
@@ -159,7 +159,7 @@ export default function TimerPage() {
             fontSize: '18px',
             fontWeight: 400,
             lineHeight: 1.6,
-            color: '#4d4d4d',
+            color: 'var(--muted-foreground)',
             marginTop: '8px',
           }}
         >
@@ -175,8 +175,8 @@ export default function TimerPage() {
           gap: '8px',
           marginBottom: '40px',
           padding: '4px',
-          background: '#fafafa',
-          boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+          background: 'var(--muted)',
+          boxShadow: 'var(--shadow-border-light)',
           borderRadius: '64px',
           width: 'fit-content',
           margin: '0 auto 40px auto',
@@ -217,7 +217,7 @@ export default function TimerPage() {
       {/* Timer Card */}
       <div
         style={{
-          background: '#ffffff',
+          background: 'var(--card)',
           boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px',
           borderRadius: '12px',
           padding: '48px 32px',
@@ -283,7 +283,7 @@ export default function TimerPage() {
               alignItems: 'center',
               gap: '8px',
               background: isFocusMode && !hasLinkedTask ? '#cccccc' : '#171717',
-              color: '#ffffff',
+              color: 'var(--primary-foreground)',
               border: 'none',
               borderRadius: '9999px',
               padding: '14px 32px',
@@ -311,8 +311,8 @@ export default function TimerPage() {
               width: '52px',
               height: '52px',
               borderRadius: '50%',
-              background: '#ffffff',
-              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+              background: 'var(--card)',
+              boxShadow: 'var(--shadow-border-light)',
               border: 'none',
               cursor: 'pointer',
               transition: 'background 0.15s ease',
@@ -320,7 +320,7 @@ export default function TimerPage() {
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
           >
-            <RotateCcw style={{ width: '16px', height: '16px', color: '#666666' }} />
+            <RotateCcw style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
           </button>
         </div>
 
@@ -331,7 +331,7 @@ export default function TimerPage() {
               display: 'block',
               fontSize: '12px',
               fontWeight: 500,
-              color: '#666666',
+              color: 'var(--muted-foreground)',
               marginBottom: '8px',
               fontFamily: "'Geist Mono', monospace",
               letterSpacing: '0.06em',
@@ -341,7 +341,7 @@ export default function TimerPage() {
             {isFocusMode ? 'TASK REQUIRED' : 'LINKED TASK'}
           </label>
 
-          <div style={{ boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px', borderRadius: '6px', overflow: 'hidden' }}>
+          <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
             <Select
               value={timer.linkedTaskId || 'none'}
               onValueChange={handleTaskLink}
@@ -377,7 +377,7 @@ export default function TimerPage() {
                 gap: '8px',
                 marginTop: '10px',
                 padding: '10px 12px',
-                background: '#fafafa',
+                background: 'var(--muted)',
                 boxShadow: 'rgba(0,0,0,0.06) 0px 0px 0px 1px',
                 borderRadius: '6px',
               }}
@@ -387,7 +387,7 @@ export default function TimerPage() {
                 style={{
                   fontSize: '12px',
                   lineHeight: 1.5,
-                  color: '#666666',
+                  color: 'var(--muted-foreground)',
                   fontFamily: "'Geist', Arial, sans-serif",
                 }}
               >

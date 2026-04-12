@@ -52,8 +52,8 @@ export function FocusReflectionModal() {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         style={{
-          background: '#ffffff',
-          boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.12) 0px 16px 48px',
+          background: 'var(--card)',
+          boxShadow: 'var(--shadow-card-hover)',
           borderRadius: '12px',
           border: 'none',
           maxWidth: '440px',
@@ -67,7 +67,7 @@ export function FocusReflectionModal() {
               fontSize: '24px',
               fontWeight: 600,
               letterSpacing: '-0.96px',
-              color: '#171717',
+              color: 'var(--foreground)',
               lineHeight: 1.2,
             }}
           >
@@ -77,7 +77,7 @@ export function FocusReflectionModal() {
             style={{
               fontFamily: "'Geist', Arial, sans-serif",
               fontSize: '14px',
-              color: '#666666',
+              color: 'var(--muted-foreground)',
               marginTop: '4px',
             }}
           >
@@ -113,7 +113,7 @@ export function FocusReflectionModal() {
                 fontFamily: "'Geist', Arial, sans-serif",
                 fontSize: '14px',
                 fontWeight: 500,
-                color: '#171717',
+                color: 'var(--foreground)',
                 margin: '0 0 12px 0',
               }}
             >
@@ -135,7 +135,7 @@ export function FocusReflectionModal() {
                   cursor: 'pointer',
                   boxShadow: madeProgress === true
                     ? 'none'
-                    : 'rgb(235,235,235) 0px 0px 0px 1px',
+                    : 'var(--shadow-border-light)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -156,7 +156,7 @@ export function FocusReflectionModal() {
                   cursor: 'pointer',
                   boxShadow: madeProgress === false
                     ? 'none'
-                    : 'rgb(235,235,235) 0px 0px 0px 1px',
+                    : 'var(--shadow-border-light)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -173,7 +173,7 @@ export function FocusReflectionModal() {
                   fontFamily: "'Geist', Arial, sans-serif",
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#171717',
+                  color: 'var(--foreground)',
                 }}
               >
                 Focus Quality
@@ -203,8 +203,8 @@ export function FocusReflectionModal() {
               className="w-full"
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#808080', fontFamily: "'Geist Mono', monospace" }}>LOW</span>
-              <span style={{ fontSize: '11px', color: '#808080', fontFamily: "'Geist Mono', monospace" }}>HIGH</span>
+              <span style={{ fontSize: '11px', color: 'var(--muted-foreground)', fontFamily: "'Geist Mono', monospace" }}>LOW</span>
+              <span style={{ fontSize: '11px', color: 'var(--muted-foreground)', fontFamily: "'Geist Mono', monospace" }}>HIGH</span>
             </div>
           </div>
 
@@ -217,12 +217,12 @@ export function FocusReflectionModal() {
                 fontFamily: "'Geist', Arial, sans-serif",
                 fontSize: '14px',
                 fontWeight: 500,
-                color: '#171717',
+                color: 'var(--foreground)',
                 marginBottom: '8px',
               }}
             >
               Observation{' '}
-              <span style={{ fontWeight: 400, color: '#808080' }}>(Optional)</span>
+              <span style={{ fontWeight: 400, color: 'var(--muted-foreground)' }}>(Optional)</span>
             </label>
             <textarea
               id="observation"
@@ -232,20 +232,20 @@ export function FocusReflectionModal() {
               rows={3}
               style={{
                 width: '100%',
-                background: '#ffffff',
-                boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+                background: 'var(--card)',
+                boxShadow: 'var(--shadow-border)',
                 border: 'none',
                 borderRadius: '6px',
                 padding: '10px 12px',
                 fontFamily: "'Geist', Arial, sans-serif",
                 fontSize: '14px',
-                color: '#171717',
+                color: 'var(--foreground)',
                 resize: 'none',
                 outline: 'none',
                 transition: 'box-shadow 0.15s ease',
               }}
-              onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px, 0 0 0 2px hsla(212, 100%, 48%, 1)'; }}
-              onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'rgba(0,0,0,0.08) 0px 0px 0px 1px'; }}
+              onFocus={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border), 0 0 0 2px var(--focus-blue)'; }}
+              onBlur={(e) => { (e.target as HTMLElement).style.boxShadow = 'var(--shadow-border)'; }}
             />
           </div>
         </div>
@@ -259,13 +259,13 @@ export function FocusReflectionModal() {
               padding: '10px',
               borderRadius: '6px',
               border: 'none',
-              background: '#ffffff',
-              color: '#666666',
+              background: 'var(--card)',
+              color: 'var(--muted-foreground)',
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: "'Geist', Arial, sans-serif",
               cursor: 'pointer',
-              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+              boxShadow: 'var(--shadow-border-light)',
               transition: 'background 0.15s ease',
             }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
@@ -280,8 +280,8 @@ export function FocusReflectionModal() {
               padding: '10px',
               borderRadius: '6px',
               border: 'none',
-              background: '#171717',
-              color: '#ffffff',
+              background: 'var(--primary)',
+              color: 'var(--primary-foreground)',
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: "'Geist', Arial, sans-serif",

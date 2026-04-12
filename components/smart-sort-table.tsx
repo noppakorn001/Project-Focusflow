@@ -98,12 +98,12 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
           alignItems: 'center',
           justifyContent: 'center',
           height: '120px',
-          background: '#fafafa',
+          background: 'var(--muted)',
           boxShadow: 'rgba(0,0,0,0.06) 0px 0px 0px 1px',
           borderRadius: '8px',
         }}
       >
-        <p style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '13px', color: '#808080' }}>
+        <p style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '13px', color: 'var(--muted-foreground)' }}>
           No tasks to display.
         </p>
       </div>
@@ -116,10 +116,10 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
     fontFamily: "'Geist Mono', monospace",
     fontSize: '11px',
     fontWeight: 500,
-    color: '#808080',
+    color: 'var(--muted-foreground)',
     letterSpacing: '0.06em',
     textTransform: 'uppercase' as const,
-    background: '#fafafa',
+    background: 'var(--muted)',
     borderBottom: '1px solid #ebebeb',
     whiteSpace: 'nowrap' as const,
   };
@@ -135,7 +135,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
   return (
     <div
       style={{
-        background: '#ffffff',
+        background: 'var(--card)',
         boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
         borderRadius: '8px',
         overflow: 'hidden',
@@ -194,7 +194,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
               const statusConfig = {
                 completed: { bg: '#ebf5ff', color: '#0068d6', label: 'Done' },
                 'in-progress': { bg: '#fdf0f8', color: '#de1d8d', label: 'In Progress' },
-                todo: { bg: '#fafafa', color: '#666666', label: 'To Do' },
+                todo: { bg: '#fafafa', color: 'var(--muted-foreground)', label: 'To Do' },
               };
               const sc = statusConfig[task.status] || statusConfig.todo;
 
@@ -221,7 +221,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                       {task.title}
                     </span>
                     {task.project && (
-                      <span style={{ fontSize: '12px', color: '#808080', display: 'block', marginTop: '2px' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--muted-foreground)', display: 'block', marginTop: '2px' }}>
                         {task.project}
                       </span>
                     )}
@@ -263,7 +263,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                       >
                         {format(task.deadline, 'MMM d')}
                         {remainingDays !== null && remainingDays <= 3 && task.status !== 'completed' && (
-                          <span style={{ color: '#808080' }}>
+                          <span style={{ color: 'var(--muted-foreground)' }}>
                             ({remainingDays === 0 ? 'today' : `${remainingDays}d`})
                           </span>
                         )}
@@ -321,7 +321,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                       <TooltipContent
                         side="left"
                         style={{
-                          background: '#ffffff',
+                          background: 'var(--card)',
                           boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.08) 0px 8px 16px',
                           border: 'none',
                           borderRadius: '8px',
@@ -329,15 +329,15 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                           maxWidth: '220px',
                         }}
                       >
-                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '13px', fontWeight: 600, color: '#171717', margin: '0 0 8px 0' }}>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '13px', fontWeight: 600, color: 'var(--foreground)', margin: '0 0 8px 0' }}>
                           Smart Score
                         </p>
-                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: '#4d4d4d', margin: '2px 0' }}>Priority: {PRIORITY_SCORE[task.priority]} ({task.priority})</p>
-                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: '#4d4d4d', margin: '2px 0' }}>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: 'var(--muted-foreground)', margin: '2px 0' }}>Priority: {PRIORITY_SCORE[task.priority]} ({task.priority})</p>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: 'var(--muted-foreground)', margin: '2px 0' }}>
                           Urgency: 1 / {remainingDays !== null ? `${remainingDays.toFixed(1)}d` : '999 (no deadline)'}
                         </p>
-                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: '#4d4d4d', margin: '2px 0' }}>Focus: {focusMinutes} min</p>
-                        <p style={{ fontFamily: "'Geist Mono', monospace", fontSize: '11px', color: '#808080', margin: '8px 0 0 0', paddingTop: '8px', borderTop: '1px solid #ebebeb' }}>
+                        <p style={{ fontFamily: "'Geist', sans-serif", fontSize: '12px', color: 'var(--muted-foreground)', margin: '2px 0' }}>Focus: {focusMinutes} min</p>
+                        <p style={{ fontFamily: "'Geist Mono', monospace", fontSize: '11px', color: 'var(--muted-foreground)', margin: '8px 0 0 0', paddingTop: '8px', borderTop: '1px solid #ebebeb' }}>
                           Priority × (1/Days) × (1+Focus)
                         </p>
                       </TooltipContent>

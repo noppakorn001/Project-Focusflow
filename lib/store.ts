@@ -51,6 +51,7 @@ export interface TimerSettings {
 export interface AppState {
   tasks: Task[];
   categories: Category[];
+  darkMode: boolean;
   timer: {
     timeLeft: number;
     isActive: boolean;
@@ -75,6 +76,7 @@ export interface AppState {
 
   setTimer: (updates: Partial<AppState['timer']>) => void;
   updateSettings: (updates: Partial<TimerSettings>) => void;
+  setDarkMode: (dark: boolean) => void;
   setSyncStatus: (status: AppState['syncStatus']) => void;
   setLastSynced: (time: number) => void;
   resetTimer: () => void;
@@ -107,6 +109,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       tasks: [],
       categories: DEFAULT_CATEGORIES,
+      darkMode: false,
       timer: {
         timeLeft: 25 * 60,
         isActive: false,
@@ -186,6 +189,8 @@ export const useStore = create<AppState>()(
         set((state) => ({
           settings: { ...state.settings, ...updates },
         })),
+
+      setDarkMode: (dark) => set({ darkMode: dark }),
 
       setSyncStatus: (status) => set({ syncStatus: status }),
       setLastSynced: (time) => set({ lastSynced: time }),
@@ -302,9 +307,10 @@ export const useStore = create<AppState>()(
         tasks: state.tasks,
         categories: state.categories,
         settings: state.settings,
+        darkMode: state.darkMode,
         lastSynced: state.lastSynced,
         sessionReflections: state.sessionReflections,
-      }), // Persist tasks, categories, settings, lastSynced, and reflections to localStorage
+      }), // Persist tasks, categories, settings, darkMode, lastSynced, and reflections
     }
   )
 );

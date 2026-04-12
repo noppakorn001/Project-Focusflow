@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { TimerLogic } from '@/components/timer-logic';
 import { FocusReflectionModal } from '@/components/focus-reflection-modal';
 import { SyncManager } from '@/components/sync-manager';
+import { ThemeProvider } from '@/components/theme-provider';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
@@ -26,15 +27,16 @@ export default function RootLayout({
         suppressHydrationWarning
         style={{
           fontFamily: "'Geist', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif",
-          background: '#ffffff',
-          color: '#171717',
+          background: 'var(--background)',
+          color: 'var(--foreground)',
         }}
       >
-        <TooltipProvider>
-          <SyncManager />
-          <div className="flex h-screen overflow-hidden" style={{ background: '#ffffff' }}>
-            {/* Desktop sidebar */}
-            <aside className="hidden md:block">
+        <ThemeProvider>
+          <TooltipProvider>
+            <SyncManager />
+            <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
+              {/* Desktop sidebar */}
+              <aside className="hidden md:block">
               <Sidebar />
             </aside>
 
@@ -43,8 +45,8 @@ export default function RootLayout({
               <header
                 className="flex h-14 items-center px-4 md:hidden"
                 style={{
-                  background: '#ffffff',
-                  boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px',
+                  background: 'var(--background)',
+                  boxShadow: 'var(--shadow-border)',
                 }}
               >
                 <Sheet>
@@ -55,15 +57,15 @@ export default function RootLayout({
                       className="mr-3"
                       style={{
                         borderRadius: '50%',
-                        boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
-                        background: '#ffffff',
+                        boxShadow: 'var(--shadow-border-light)',
+                        background: 'var(--background)',
                       }}
                     >
-                      <Menu className="h-4 w-4" style={{ color: '#171717' }} />
+                      <Menu className="h-4 w-4" style={{ color: 'var(--foreground)' }} />
                       <span className="sr-only">Toggle menu</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-64 p-0" style={{ background: '#ffffff', border: 'none', boxShadow: 'var(--shadow-card)' }}>
+                  <SheetContent side="left" className="w-64 p-0" style={{ background: 'var(--background)', border: 'none', boxShadow: 'var(--shadow-card)' }}>
                     <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                     <div className="h-full px-4 py-6">
                       <SidebarContent />
@@ -76,7 +78,7 @@ export default function RootLayout({
                     fontSize: '16px',
                     fontWeight: 600,
                     letterSpacing: '-0.32px',
-                    color: '#171717',
+                    color: 'var(--foreground)',
                   }}
                 >
                   FocusFlow
@@ -85,7 +87,7 @@ export default function RootLayout({
 
               <main
                 className="flex-1 overflow-y-auto p-4 md:p-8"
-                style={{ background: '#fafafa' }}
+                style={{ background: 'var(--muted)' }}
               >
                 <TimerLogic />
                 <FocusReflectionModal />
@@ -95,7 +97,8 @@ export default function RootLayout({
           </div>
           <Toaster />
         </TooltipProvider>
-      </body>
+      </ThemeProvider>
+    </body>
     </html>
   );
 }

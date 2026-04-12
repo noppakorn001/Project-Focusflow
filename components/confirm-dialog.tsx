@@ -35,8 +35,8 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         style={{
-          background: '#ffffff',
-          boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.12) 0px 16px 48px',
+          background: 'var(--card)',
+          boxShadow: 'var(--shadow-card-hover)',
           borderRadius: '12px',
           border: 'none',
           maxWidth: '400px',
@@ -68,7 +68,7 @@ export function ConfirmDialog({
                   fontSize: '18px',
                   fontWeight: 600,
                   letterSpacing: '-0.36px',
-                  color: '#171717',
+                  color: 'var(--foreground)',
                   margin: 0,
                 }}
               >
@@ -78,7 +78,7 @@ export function ConfirmDialog({
                 style={{
                   fontFamily: "'Geist', Arial, sans-serif",
                   fontSize: '14px',
-                  color: '#666666',
+                  color: 'var(--muted-foreground)',
                   marginTop: '6px',
                   lineHeight: 1.5,
                 }}
@@ -96,13 +96,13 @@ export function ConfirmDialog({
               padding: '8px 16px',
               borderRadius: '6px',
               border: 'none',
-              background: '#ffffff',
-              color: '#666666',
+              background: 'var(--card)',
+              color: 'var(--muted-foreground)',
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: "'Geist', Arial, sans-serif",
               cursor: 'pointer',
-              boxShadow: 'rgb(235,235,235) 0px 0px 0px 1px',
+              boxShadow: 'var(--shadow-border-light)',
               transition: 'background 0.15s ease',
             }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
@@ -120,7 +120,7 @@ export function ConfirmDialog({
               borderRadius: '6px',
               border: 'none',
               background: variant === 'destructive' ? '#ff5b4f' : '#171717',
-              color: '#ffffff',
+              color: 'var(--primary-foreground)',
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: "'Geist', Arial, sans-serif",
