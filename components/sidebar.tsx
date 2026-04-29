@@ -9,10 +9,6 @@ import {
   Timer,
   BarChart3,
   Settings,
-  Cloud,
-  CloudOff,
-  RefreshCw,
-  CheckCircle2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { signInWithPopup, signOut, onAuthStateChanged, type User } from 'firebase/auth';
@@ -43,10 +39,20 @@ export function SidebarContent() {
 
   useEffect(() => {
     if (!auth) return;
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
+      if (u) {
+        // Auto-sync on page load / refresh when already logged in
+        try {
+          await startSync(u.uid, 'replace');
+        } catch (err) {
+          console.error('Auto-sync on auth state change failed:', err);
+          toast.error('Sync failed — check your connection');
+        }
+      }
     });
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSignIn = async () => {

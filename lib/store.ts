@@ -445,6 +445,10 @@ export const useStore = create<AppState>()(
         const state = get();
         set({ currentUserUid: uid, syncStatus: 'syncing' });
 
+        // Always wipe stale local cache before loading from Firestore
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('focus-flow-storage');
+        }
         try {
           if (mode === 'merge') {
             // Push local data up to Firestore first
@@ -522,13 +526,15 @@ export const useStore = create<AppState>()(
           );
 
           // ── Live listener: tasks collection ──
+          // hasPendingWrites is NOT checked here — it would block updates from other devices.
+          // fromCache alone is enough to skip echoes of our own writes.
           unsubTasks = onSnapshot(
             collection(db, `users/${uid}/tasks`),
             { includeMetadataChanges: true },
             async (snap) => {
-              // Skip local-cache reads; only apply confirmed server updates
+              // fromCache = true means Firestore is serving stale local data (offline)
+              // We only want real server pushes (from this or other devices)
               if (snap.metadata.fromCache) return;
-              if (snap.metadata.hasPendingWrites) return;
 
               const newTasks: Task[] = [];
               for (const docSnap of snap.docs) {
@@ -559,13 +565,20 @@ export const useStore = create<AppState>()(
     {
       name: 'focus-flow-storage',
       partialize: (state) => ({
-        tasks: state.tasks,
-        categories: state.categories,
-        settings: state.settings,
+        // When logged in, Firebase is the source of truth.
+        // Only persist UI prefs locally; tasks/categories/reflections come from Firestore.
         darkMode: state.darkMode,
-        lastSynced: state.lastSynced,
-        sessionReflections: state.sessionReflections,
-      }), // Persist tasks, categories, settings, darkMode, lastSynced, and reflections
+        settings: state.settings,
+        // Keep tasks/categories in local storage ONLY for anonymous (logged-out) users
+        ...(state.currentUserUid
+          ? {}
+          : {
+              tasks: state.tasks,
+              categories: state.categories,
+              sessionReflections: state.sessionReflections,
+              lastSynced: state.lastSynced,
+            }),
+      }),
     }
   )
 );
