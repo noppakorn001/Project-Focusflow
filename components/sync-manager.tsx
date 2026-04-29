@@ -14,6 +14,8 @@ export function SyncManager() {
 
   // ── Initial Load ────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!auth) return;
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       const previousUid = currentUidRef.current;
       currentUidRef.current = user?.uid ?? null;

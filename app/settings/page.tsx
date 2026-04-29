@@ -61,6 +61,8 @@ export default function SettingsPage() {
 
   // Track Firebase auth state reactively
   useEffect(() => {
+    if (!auth) return;
+    
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
     });
