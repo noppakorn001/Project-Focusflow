@@ -116,7 +116,7 @@ export function TimerLogic() {
           if (timer.linkedTaskId) {
             const linkedTask = tasks.find((t) => t.id === timer.linkedTaskId);
             if (linkedTask) {
-              setPendingReflection({ taskId: linkedTask.id, taskName: linkedTask.title });
+              setPendingReflection({ taskId: linkedTask.id, taskName: linkedTask.title, parentId: timer.resumedCheckpointId });
             }
           }
 

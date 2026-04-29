@@ -36,6 +36,7 @@ export function FocusReflectionModal() {
     logReflection({
       taskId: pendingReflection.taskId,
       taskName: pendingReflection.taskName,
+      parentId: pendingReflection.parentId,
       madeProgress,
       focusQuality,
       observation,

@@ -104,6 +104,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       addTask({
         ...taskData,
         status: 'todo',
+        checkpoints: [],
       });
       toast.success('Task created');
     }

@@ -8,10 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Play, Pause, RotateCcw, Coffee, Brain, Armchair, Info } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Brain, Armchair, Info, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // SVG Circular Progress Ring
 function CircularProgress({
@@ -78,15 +78,21 @@ const modeConfig = {
 };
 
 export default function TimerPage() {
-  const { timer, tasks, settings, setTimer, resetTimer, switchMode } = useStore();
+  const { timer, tasks, settings, setTimer, resetTimer, switchMode, activeContextNote, clearActiveContext, setPendingReflection } = useStore();
   const [mounted, setMounted] = useState(false);
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Tracks the total duration the ring should measure against.
+  // Defaults to settings value; updated on custom time input or mode switch.
+  const [sessionTotal, setSessionTotal] = useState<number | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
-  const getTotalDuration = () => {
+  const getSettingsDuration = () => {
     switch (timer.mode) {
       case 'focus': return settings.focusDuration * 60;
       case 'short-break': return settings.shortBreakDuration * 60;
@@ -94,8 +100,12 @@ export default function TimerPage() {
     }
   };
 
-  const totalDuration = getTotalDuration();
-  const progress = totalDuration > 0 ? (totalDuration - timer.timeLeft) / totalDuration : 0;
+  // getTotalDuration is still used for stop/reset, always returns settings-based value
+  const getTotalDuration = getSettingsDuration;
+
+  // Progress ring always uses sessionTotal (the actual duration we set), falling back to settings
+  const ringTotal = sessionTotal ?? getSettingsDuration();
+  const progress = ringTotal > 0 ? Math.max(0, Math.min(1, (ringTotal - timer.timeLeft) / ringTotal)) : 0;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -115,8 +125,50 @@ export default function TimerPage() {
     setTimer({ isActive: !timer.isActive });
   };
 
+  const stopTimer = () => {
+    const defaultDuration = getTotalDuration();
+    const timeSpent = (sessionTotal ?? defaultDuration) - timer.timeLeft;
+
+    if (timer.mode === 'focus' && timer.linkedTaskId && timeSpent > 0) {
+      const task = tasks.find((t) => t.id === timer.linkedTaskId);
+      if (task) {
+        setPendingReflection({ taskId: task.id, taskName: task.title, parentId: timer.resumedCheckpointId });
+        toast.info('Session stopped. Process saved.');
+      }
+    } else {
+      toast.info('Timer stopped');
+    }
+
+    setTimer({ isActive: false, timeLeft: defaultDuration, startedAt: null });
+    setSessionTotal(null); // ring resets to 0%
+  };
+
+  const handleTimeClick = () => {
+    if (timer.isActive) return; // can't edit while running
+    setCustomInput(String(Math.ceil(timer.timeLeft / 60)));
+    setIsEditingTime(true);
+    setTimeout(() => inputRef.current?.select(), 30);
+  };
+
+  const commitCustomTime = () => {
+    const mins = parseInt(customInput, 10);
+    if (!isNaN(mins) && mins > 0 && mins <= 999) {
+      const secs = mins * 60;
+      setTimer({ timeLeft: secs, isActive: false });
+      setSessionTotal(secs); // ring now measures against this custom total
+      toast.success(`Timer set to ${mins}m`);
+    }
+    setIsEditingTime(false);
+  };
+
+  const handleTimeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') commitCustomTime();
+    if (e.key === 'Escape') setIsEditingTime(false);
+  };
+
   const handleModeChange = (mode: TimerMode) => {
     switchMode(mode);
+    setSessionTotal(null); // reset ring to use settings duration for the new mode
     toast.success(`Switched to ${mode.replace('-', ' ')} mode`);
   };
 
@@ -225,8 +277,47 @@ export default function TimerPage() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          position: 'relative',
         }}
       >
+        {activeContextNote && (
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#171717',
+            padding: '4px 12px',
+            borderRadius: '4px',
+          }}>
+            <span style={{
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: '10px',
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              color: '#ffffff',
+              textTransform: 'uppercase',
+            }}>
+              Resuming:
+            </span>
+            <span style={{
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: '10px',
+              color: '#a3a3a3',
+              maxWidth: '200px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }} title={activeContextNote}>
+              {activeContextNote}
+            </span>
+          </div>
+        )}
+
         {/* Circular Timer */}
         <div
           style={{
@@ -240,22 +331,59 @@ export default function TimerPage() {
         >
           <CircularProgress progress={progress} isActive={timer.isActive} mode={timer.mode} />
 
-          {/* Time display */}
+          {/* Time display — click to set custom duration */}
           <div style={{ zIndex: 10, textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: "'Geist Mono', monospace",
-                fontSize: '64px',
-                fontWeight: 600,
-                letterSpacing: '-2px',
-                lineHeight: 1.0,
-                color: timer.isActive ? '#171717' : '#4d4d4d',
-                fontVariantNumeric: 'tabular-nums',
-                transition: 'color 0.3s ease',
-              }}
-            >
-              {formatTime(timer.timeLeft)}
-            </div>
+            {isEditingTime ? (
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                <input
+                  ref={inputRef}
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={customInput}
+                  onChange={(e) => setCustomInput(e.target.value)}
+                  onBlur={commitCustomTime}
+                  onKeyDown={handleTimeKeyDown}
+                  style={{
+                    fontFamily: "'Geist Mono', monospace",
+                    fontSize: '64px',
+                    fontWeight: 600,
+                    letterSpacing: '-2px',
+                    lineHeight: 1.0,
+                    color: '#171717',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: '2px solid #0a72ef',
+                    outline: 'none',
+                    width: '120px',
+                    textAlign: 'center',
+                    appearance: 'textfield',
+                    MozAppearance: 'textfield',
+                  }}
+                  autoFocus
+                />
+                <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: '20px', color: '#808080', fontWeight: 500 }}>min</span>
+              </div>
+            ) : (
+              <div
+                onClick={handleTimeClick}
+                title={timer.isActive ? undefined : 'Click to set custom time'}
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: '64px',
+                  fontWeight: 600,
+                  letterSpacing: '-2px',
+                  lineHeight: 1.0,
+                  color: timer.isActive ? 'var(--foreground)' : '#4d4d4d',
+                  fontVariantNumeric: 'tabular-nums',
+                  transition: 'color 0.3s ease',
+                  cursor: timer.isActive ? 'default' : 'text',
+                  userSelect: 'none',
+                }}
+              >
+                {formatTime(timer.timeLeft)}
+              </div>
+            )}
             <div
               style={{
                 fontFamily: "'Geist Mono', monospace",
@@ -268,13 +396,19 @@ export default function TimerPage() {
                 transition: 'color 0.3s ease',
               }}
             >
-              {timer.mode.replace('-', ' ')}
+              {isEditingTime ? 'SET DURATION' : timer.mode.replace('-', ' ')}
             </div>
+            {!timer.isActive && !isEditingTime && (
+              <div style={{ fontSize: '11px', color: '#b0b0b0', marginTop: '4px', fontFamily: "'Geist', sans-serif" }}>
+                click to edit
+              </div>
+            )}
           </div>
         </div>
 
         {/* Controls */}
         <div style={{ marginTop: '40px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Play / Pause */}
           <button
             onClick={toggleTimer}
             disabled={isFocusMode && !hasLinkedTask}
@@ -302,8 +436,39 @@ export default function TimerPage() {
             )}
           </button>
 
+          {/* Stop — reset to full duration */}
+          <button
+            onClick={stopTimer}
+            title="Stop and reset timer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              background: timer.isActive ? '#fff0ef' : 'var(--muted)',
+              boxShadow: timer.isActive ? 'rgba(255,91,79,0.25) 0px 0px 0px 1px' : 'var(--shadow-border-light)',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.15s ease, box-shadow 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = '#fff0ef';
+              (e.currentTarget as HTMLElement).style.boxShadow = 'rgba(255,91,79,0.25) 0px 0px 0px 1px';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = timer.isActive ? '#fff0ef' : 'var(--muted)';
+              (e.currentTarget as HTMLElement).style.boxShadow = timer.isActive ? 'rgba(255,91,79,0.25) 0px 0px 0px 1px' : 'var(--shadow-border-light)';
+            }}
+          >
+            <Square style={{ width: '15px', height: '15px', color: timer.isActive ? '#ff5b4f' : 'var(--muted-foreground)', fill: timer.isActive ? '#ff5b4f' : 'var(--muted-foreground)' }} />
+          </button>
+
+          {/* Reset to default */}
           <button
             onClick={resetTimer}
+            title="Reset to default duration"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -317,8 +482,8 @@ export default function TimerPage() {
               cursor: 'pointer',
               transition: 'background 0.15s ease',
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--muted)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--card)')}
           >
             <RotateCcw style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
           </button>

@@ -22,7 +22,9 @@ import { CategoryManager } from '@/components/category-manager';
 import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
 import { ProjectProgressView } from '@/components/project-progress-view';
 import { SmartSortTable } from '@/components/smart-sort-table';
-import { Plus, Search, Trash2, Edit, CheckCircle2, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { TaskActivityHeatmap } from '@/components/task-activity-heatmap';
+import { CheckpointTimeline } from '@/components/checkpoint-timeline';
+import { Plus, Search, Trash2, Edit, CheckCircle2, Clock, Calendar as CalendarIcon, Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -45,6 +47,7 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'smart-sort' | 'by-project'>('list');
   const [mounted, setMounted] = useState(false);
   const { confirm, dialogProps } = useConfirmDialog();
@@ -366,255 +369,137 @@ export default function TasksPage() {
             filteredTasks.map((task) => {
               const category = getCategory(task.categoryId);
               const isOverdue = task.deadline && task.deadline < now && task.status !== 'completed';
+              const isExpanded = selectedTaskId === task.id;
+              const checkpoints = task.checkpoints ?? [];
               return (
-                <div
-                  key={task.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '16px',
-                    background: 'var(--card)',
-                    boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
-                    borderRadius: '8px',
-                    padding: '16px 20px',
-                    border: 'none',
-                    transition: 'box-shadow 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      'rgba(0,0,0,0.12) 0px 0px 0px 1px, rgba(0,0,0,0.06) 0px 4px 4px, #fafafa 0px 0px 0px 1px';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px';
-                  }}
-                >
-                  {/* Left: checkbox + info */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', minWidth: 0, flex: 1 }}>
-                    {/* Checkbox */}
-                    <button
-                      onClick={() => handleStatusChange(task.id, task.status === 'completed' ? 'todo' : 'completed')}
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        flexShrink: 0,
-                        background: task.status === 'completed' ? '#0a72ef' : '#ffffff',
-                        boxShadow: task.status === 'completed'
-                          ? 'none'
-                          : 'rgba(0,0,0,0.2) 0px 0px 0px 1.5px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginTop: '2px',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {task.status === 'completed' && (
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                          <path d="M2 5l2.5 2.5L8 3" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </button>
-
-                    {/* Task details */}
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
-                        <span
-                          style={{
-                            fontFamily: "'Geist', Arial, sans-serif",
-                            fontSize: '15px',
-                            fontWeight: 600,
-                            letterSpacing: '-0.15px',
-                            color: task.status === 'completed' ? '#808080' : '#171717',
-                            textDecoration: task.status === 'completed' ? 'line-through' : 'none',
-                          }}
-                        >
-                          {task.title}
-                        </span>
-
-                        {/* Priority pill */}
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            background: priorityBg[task.priority] || '#fafafa',
-                            color: priorityColor[task.priority] || '#666666',
-                            borderRadius: '9999px',
-                            padding: '1px 8px',
-                            fontSize: '11px',
-                            fontWeight: 500,
-                            fontFamily: "'Geist Mono', monospace",
-                            textTransform: 'uppercase' as const,
-                            letterSpacing: '0.04em',
-                          }}
-                        >
-                          {task.priority}
-                        </span>
-
-                        {/* Category */}
-                        {category && (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '9999px',
-                              padding: '1px 8px',
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              color: category.color,
-                              background: `${category.color}18`,
-                            }}
-                          >
-                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: category.color, flexShrink: 0 }} />
-                            {category.name}
-                          </span>
+                <div key={task.id} style={{ borderRadius: '8px', overflow: 'hidden', boxShadow: isExpanded ? 'rgba(0,0,0,0.12) 0px 0px 0px 1px, rgba(0,0,0,0.06) 0px 4px 8px' : 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px', transition: 'box-shadow 0.2s ease' }}>
+                  {/* ── Main row ── */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                      background: 'var(--card)',
+                      padding: '16px 20px',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setSelectedTaskId(isExpanded ? null : task.id)}
+                  >
+                    {/* Left: checkbox + info */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', minWidth: 0, flex: 1 }}>
+                      {/* Checkbox — stop propagation so clicking it doesn't toggle panel */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleStatusChange(task.id, task.status === 'completed' ? 'todo' : 'completed'); }}
+                        style={{
+                          width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+                          background: task.status === 'completed' ? '#0a72ef' : 'var(--card)',
+                          boxShadow: task.status === 'completed' ? 'none' : 'rgba(0,0,0,0.2) 0px 0px 0px 1.5px',
+                          border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          marginTop: '2px', transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {task.status === 'completed' && (
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M2 5l2.5 2.5L8 3" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
                         )}
+                      </button>
 
-                        {/* Project */}
-                        {task.project && (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              borderRadius: '9999px',
-                              padding: '1px 8px',
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              background: 'var(--muted)',
-                              color: 'var(--muted-foreground)',
-                              boxShadow: 'var(--shadow-border-light)',
-                            }}
-                          >
-                            {task.project}
+                      {/* Task details */}
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
+                          <span style={{ fontFamily: "'Geist', Arial, sans-serif", fontSize: '15px', fontWeight: 600, letterSpacing: '-0.15px', color: task.status === 'completed' ? 'var(--muted-foreground)' : 'var(--foreground)', textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                            {task.title}
                           </span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', background: priorityBg[task.priority] || '#fafafa', color: priorityColor[task.priority] || '#666666', borderRadius: '9999px', padding: '1px 8px', fontSize: '11px', fontWeight: 500, fontFamily: "'Geist Mono', monospace", textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {task.priority}
+                          </span>
+                          {category && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '9999px', padding: '1px 8px', fontSize: '11px', fontWeight: 500, color: category.color, background: `${category.color}18` }}>
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: category.color, flexShrink: 0 }} />
+                              {category.name}
+                            </span>
+                          )}
+                          {task.project && (
+                            <span style={{ display: 'inline-flex', borderRadius: '9999px', padding: '1px 8px', fontSize: '11px', fontWeight: 500, background: 'var(--muted)', color: 'var(--muted-foreground)', boxShadow: 'var(--shadow-border-light)' }}>
+                              {task.project}
+                            </span>
+                          )}
+                          {checkpoints.length > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '9999px', padding: '1px 8px', fontSize: '11px', fontWeight: 500, background: 'var(--muted)', color: 'var(--muted-foreground)', boxShadow: 'var(--shadow-border-light)', fontFamily: "'Geist Mono', monospace" }}>
+                              <Activity style={{ width: '9px', height: '9px' }} />
+                              {checkpoints.length}
+                            </span>
+                          )}
+                        </div>
+                        {task.description && (
+                          <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', margin: '2px 0 6px', lineHeight: 1.4 }}>{task.description}</p>
                         )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {task.deadline && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '9999px', padding: '2px 8px', fontSize: '11px', fontWeight: 500, background: isOverdue ? '#fff0ef' : 'var(--muted)', color: isOverdue ? '#ff5b4f' : 'var(--muted-foreground)', boxShadow: isOverdue ? 'rgba(255,91,79,0.2) 0px 0px 0px 1px' : 'var(--shadow-border-light)' }}>
+                              <CalendarIcon style={{ width: '10px', height: '10px' }} />
+                              {format(task.deadline, 'MMM d')}
+                            </span>
+                          )}
+                          {task.tags.map((tag) => (
+                            <span key={tag} style={{ display: 'inline-flex', borderRadius: '9999px', padding: '2px 8px', fontSize: '11px', fontWeight: 500, background: 'var(--muted)', color: 'var(--muted-foreground)', boxShadow: 'var(--shadow-border-light)' }}>{tag}</span>
+                          ))}
+                          {task.timeSpent > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', borderRadius: '9999px', padding: '2px 8px', fontSize: '11px', fontWeight: 500, background: '#ebf5ff', color: '#0068d6' }}>
+                              <Clock style={{ width: '10px', height: '10px' }} />
+                              {Math.floor(task.timeSpent / 60)}m
+                            </span>
+                          )}
+                        </div>
                       </div>
+                    </div>
 
-                      {/* Description */}
-                      {task.description && (
-                        <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', margin: '2px 0 6px', lineHeight: 1.4 }}>
-                          {task.description}
-                        </p>
-                      )}
-
-                      {/* Meta row */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {task.deadline && (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '9999px',
-                              padding: '2px 8px',
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              background: isOverdue ? '#fff0ef' : '#fafafa',
-                              color: isOverdue ? '#ff5b4f' : '#666666',
-                              boxShadow: isOverdue ? 'rgba(255,91,79,0.2) 0px 0px 0px 1px' : 'var(--shadow-border-light)',
-                            }}
-                          >
-                            <CalendarIcon style={{ width: '10px', height: '10px' }} />
-                            {format(task.deadline, 'MMM d')}
-                          </span>
-                        )}
-
-                        {task.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            style={{
-                              display: 'inline-flex',
-                              borderRadius: '9999px',
-                              padding: '2px 8px',
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              background: 'var(--muted)',
-                              color: 'var(--muted-foreground)',
-                              boxShadow: 'var(--shadow-border-light)',
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-
-                        {task.timeSpent > 0 && (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '9999px',
-                              padding: '2px 8px',
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              background: '#ebf5ff',
-                              color: '#0068d6',
-                            }}
-                          >
-                            <Clock style={{ width: '10px', height: '10px' }} />
-                            {Math.floor(task.timeSpent / 60)}m
-                          </span>
-                        )}
+                    {/* Right: expand toggle + actions */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditingTask(task); setIsDialogOpen(true); }}
+                        style={{ width: '32px', height: '32px', borderRadius: '6px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease', color: 'var(--muted-foreground)' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--muted)'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                      >
+                        <Edit style={{ width: '14px', height: '14px' }} />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
+                        style={{ width: '32px', height: '32px', borderRadius: '6px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease', color: 'var(--muted-foreground)' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff0ef'; (e.currentTarget as HTMLElement).style.color = '#ff5b4f'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'; }}
+                      >
+                        <Trash2 style={{ width: '14px', height: '14px' }} />
+                      </button>
+                      <div style={{ color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center' }}>
+                        {isExpanded ? <ChevronUp style={{ width: '14px', height: '14px' }} /> : <ChevronDown style={{ width: '14px', height: '14px' }} />}
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: actions */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                    <button
-                      onClick={() => {
-                        setEditingTask(task);
-                        setIsDialogOpen(true);
-                      }}
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'background 0.15s ease',
-                        color: 'var(--muted-foreground)',
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#fafafa'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                    >
-                      <Edit style={{ width: '14px', height: '14px' }} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(task.id)}
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'background 0.15s ease',
-                        color: 'var(--muted-foreground)',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = '#fff0ef';
-                        (e.currentTarget as HTMLElement).style.color = '#ff5b4f';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = 'transparent';
-                        (e.currentTarget as HTMLElement).style.color = '#808080';
-                      }}
-                    >
-                      <Trash2 style={{ width: '14px', height: '14px' }} />
-                    </button>
-                  </div>
+                  {/* ── Expandable detail panel ── */}
+                  {isExpanded && (
+                    <div style={{ borderTop: '1px solid var(--muted)', background: 'var(--card)', padding: '20px 24px 24px' }}>
+                      {/* Activity Heatmap */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <p style={{ fontFamily: "'Geist Mono', monospace", fontSize: '10px', letterSpacing: '0.08em', color: 'var(--muted-foreground)', margin: '0 0 4px 0' }}>
+                          ACTIVITY — LAST 30 DAYS
+                        </p>
+                        <TaskActivityHeatmap checkpoints={checkpoints} />
+                      </div>
+
+                      {/* Checkpoint Timeline */}
+                      <div>
+                        <p style={{ fontFamily: "'Geist Mono', monospace", fontSize: '10px', letterSpacing: '0.08em', color: 'var(--muted-foreground)', margin: '0 0 16px 0' }}>
+                          CHECKPOINT HISTORY
+                        </p>
+                        <CheckpointTimeline checkpoints={checkpoints} taskId={task.id} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })

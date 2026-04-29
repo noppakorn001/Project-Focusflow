@@ -12,6 +12,14 @@ export interface Category {
   color: string;
 }
 
+export interface Checkpoint {
+  id: string;
+  timestamp: number;
+  note: string;
+  duration: number; // seconds spent in that session
+  parentId?: string; // ID of the checkpoint this was resumed from
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -26,6 +34,7 @@ export interface Task {
   categoryId?: string | null;
   calendarEventId?: string | null;
   project?: string | null;
+  checkpoints: Checkpoint[];
 }
 
 export interface FocusReflection {
@@ -58,12 +67,14 @@ export interface AppState {
     mode: TimerMode;
     linkedTaskId: string | null;
     startedAt: number | null; // Date.now() when timer was started/resumed
+    resumedCheckpointId: string | null; // ID of the checkpoint being resumed
   };
   settings: TimerSettings;
   syncStatus: 'idle' | 'syncing' | 'error' | 'success';
   lastSynced: number | null;
-  pendingReflection: { taskId: string; taskName: string } | null;
+  pendingReflection: { taskId: string; taskName: string; parentId?: string | null } | null;
   sessionReflections: FocusReflection[];
+  activeContextNote: string | null;
 
   // Actions
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completedAt' | 'timeSpent'>) => void;
@@ -83,8 +94,10 @@ export interface AppState {
   tickTimer: () => void;
   advanceTimer: (seconds: number) => void;
   switchMode: (mode: TimerMode) => void;
-  setPendingReflection: (reflection: { taskId: string; taskName: string } | null) => void;
-  logReflection: (reflection: Omit<FocusReflection, 'sessionId'>) => void;
+  setPendingReflection: (reflection: { taskId: string; taskName: string; parentId?: string | null } | null) => void;
+  logReflection: (reflection: Omit<FocusReflection, 'sessionId'> & { parentId?: string | null }) => void;
+  resumeFromContext: (taskId: string, note: string, checkpointId: string) => void;
+  clearActiveContext: () => void;
 
   // For Firestore Sync
   loadState: (state: Partial<AppState>) => void;
@@ -118,12 +131,14 @@ export const useStore = create<AppState>()(
         mode: 'focus',
         linkedTaskId: null,
         startedAt: null,
+        resumedCheckpointId: null,
       },
       settings: DEFAULT_SETTINGS,
       syncStatus: 'idle',
       lastSynced: null,
       pendingReflection: null,
       sessionReflections: [],
+      activeContextNote: null,
 
       addTask: (taskData) =>
         set((state) => ({
@@ -135,6 +150,7 @@ export const useStore = create<AppState>()(
               createdAt: Date.now(),
               completedAt: null,
               timeSpent: 0,
+              checkpoints: [],
             },
           ],
         })),
@@ -204,6 +220,7 @@ export const useStore = create<AppState>()(
           sessionReflections: [],
           lastSynced: null,
           pendingReflection: null,
+          activeContextNote: null,
           syncStatus: 'idle',
           timer: {
             timeLeft: DEFAULT_SETTINGS.focusDuration * 60,
@@ -211,6 +228,7 @@ export const useStore = create<AppState>()(
             mode: 'focus',
             linkedTaskId: null,
             startedAt: null,
+            resumedCheckpointId: null,
           },
         });
         // Also wipe the persisted localStorage entry so data never appears
@@ -219,6 +237,19 @@ export const useStore = create<AppState>()(
           localStorage.removeItem('focus-flow-storage');
         }
       },
+
+      clearActiveContext: () => set({ activeContextNote: null }),
+
+      resumeFromContext: (taskId, note, checkpointId) =>
+        set((state) => ({
+          activeContextNote: note,
+          timer: {
+            ...state.timer,
+            linkedTaskId: taskId,
+            mode: 'focus', // Force focus mode when resuming
+            resumedCheckpointId: checkpointId,
+          },
+        })),
 
       resetTimer: () => {
         const { settings, timer } = get();
@@ -232,7 +263,9 @@ export const useStore = create<AppState>()(
             timeLeft: duration * 60,
             isActive: false,
             startedAt: null,
+            resumedCheckpointId: null,
           },
+          activeContextNote: null,
         });
       },
 
@@ -274,7 +307,9 @@ export const useStore = create<AppState>()(
             timeLeft: duration * 60,
             isActive: false,
             startedAt: null,
+            resumedCheckpointId: null,
           },
+          activeContextNote: null,
         }));
       },
 
@@ -306,12 +341,38 @@ export const useStore = create<AppState>()(
         set({ pendingReflection: reflection }),
 
       logReflection: (reflectionData) =>
-        set((state) => ({
-          sessionReflections: [
-            ...state.sessionReflections,
-            { ...reflectionData, sessionId: uuidv4() },
-          ],
-        })),
+        set((state) => {
+          // Append as a checkpoint on the linked task
+          const updatedTasks = state.tasks.map((t) => {
+            if (t.id !== reflectionData.taskId) return t;
+            const checkpoint: Checkpoint = {
+              id: uuidv4(),
+              timestamp: reflectionData.completedAt,
+              note: reflectionData.observation,
+              // duration = time spent since last checkpoint (or total timeSpent if first)
+              duration: (() => {
+                const prev = [...(t.checkpoints ?? [])].sort((a, b) => b.timestamp - a.timestamp)[0];
+                if (!prev) return t.timeSpent;
+                // Estimate: sum of timeSpent minus sum of prior checkpoint durations
+                const accounted = (t.checkpoints ?? []).reduce((s, c) => s + c.duration, 0);
+                return Math.max(0, t.timeSpent - accounted);
+              })(),
+            };
+            if (reflectionData.parentId) {
+              checkpoint.parentId = reflectionData.parentId;
+            }
+            return { ...t, checkpoints: [...(t.checkpoints ?? []), checkpoint] };
+          });
+
+          return {
+            tasks: updatedTasks,
+            sessionReflections: [
+              ...state.sessionReflections,
+              { ...reflectionData, sessionId: uuidv4() },
+            ],
+            activeContextNote: null,
+          };
+        }),
 
       loadState: (loadedState) => {
         // Merge loaded state carefully
