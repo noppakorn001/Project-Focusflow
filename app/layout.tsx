@@ -5,7 +5,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TimerLogic } from '@/components/timer-logic';
 import { FocusReflectionModal } from '@/components/focus-reflection-modal';
-import { SyncManager } from '@/components/sync-manager';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,6 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <TooltipProvider>
-            <SyncManager />
             <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
               {/* Desktop sidebar */}
               <aside className="hidden md:block">

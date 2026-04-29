@@ -1,6 +1,33 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import { doc, setDoc, writeBatch, onSnapshot, collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { db } from './firebase';
+
+let unsubTasks: (() => void) | null = null;
+let unsubDoc: (() => void) | null = null;
+
+const pushTaskToFirestore = (uid: string | null, task: Task) => {
+  if (!uid) return;
+  const taskRef = doc(db, `users/${uid}/tasks`, task.id);
+  const { checkpoints, ...taskData } = task;
+  setDoc(taskRef, taskData).catch(console.error);
+  for (const cp of checkpoints || []) {
+    const cpRef = doc(db, `users/${uid}/tasks/${task.id}/checkpoints`, cp.id);
+    setDoc(cpRef, cp).catch(console.error);
+  }
+};
+
+const pushUserDocToFirestore = (uid: string | null, state: AppState) => {
+  if (!uid) return;
+  const userRef = doc(db, 'users', uid, 'data', 'focusflow');
+  setDoc(userRef, {
+    categories: state.categories,
+    settings: state.settings,
+    sessionReflections: state.sessionReflections,
+    lastSynced: Date.now()
+  }, { merge: true }).catch(console.error);
+};
 
 export type TaskStatus = 'todo' | 'in-progress' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high';
@@ -100,6 +127,8 @@ export interface AppState {
   clearActiveContext: () => void;
 
   // For Firestore Sync
+  currentUserUid: string | null;
+  startSync: (uid: string, mode: 'merge' | 'replace') => Promise<void>;
   loadState: (state: Partial<AppState>) => void;
   /** Wipe all user-specific data from memory AND localStorage on sign-out. */
   clearUserData: () => void;
@@ -139,57 +168,70 @@ export const useStore = create<AppState>()(
       pendingReflection: null,
       sessionReflections: [],
       activeContextNote: null,
+      currentUserUid: null,
 
       addTask: (taskData) =>
-        set((state) => ({
-          tasks: [
-            ...state.tasks,
-            {
-              ...taskData,
-              id: uuidv4(),
-              createdAt: Date.now(),
-              completedAt: null,
-              timeSpent: 0,
-              checkpoints: [],
-            },
-          ],
-        })),
+        set((state) => {
+          const newTask = {
+            ...taskData,
+            id: uuidv4(),
+            createdAt: Date.now(),
+            completedAt: null,
+            timeSpent: 0,
+            checkpoints: [],
+          };
+          pushTaskToFirestore(state.currentUserUid, newTask);
+          return { tasks: [...state.tasks, newTask] };
+        }),
 
       updateTask: (id, updates) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
+        set((state) => {
+          const newTasks = state.tasks.map((t) =>
             t.id === id ? { ...t, ...updates } : t
-          ),
-        })),
+          );
+          const updatedTask = newTasks.find(t => t.id === id);
+          if (updatedTask) pushTaskToFirestore(state.currentUserUid, updatedTask);
+          return { tasks: newTasks };
+        }),
 
       deleteTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.filter((t) => t.id !== id),
-        })),
+        set((state) => {
+          if (state.currentUserUid) {
+            deleteDoc(doc(db, `users/${state.currentUserUid}/tasks`, id)).catch(console.error);
+          }
+          return { tasks: state.tasks.filter((t) => t.id !== id) };
+        }),
 
       addCategory: (categoryData) =>
-        set((state) => ({
-          categories: [
-            ...state.categories,
-            { ...categoryData, id: uuidv4() },
-          ],
-        })),
+        set((state) => {
+          const newState = {
+            ...state,
+            categories: [...state.categories, { ...categoryData, id: uuidv4() }],
+          };
+          pushUserDocToFirestore(state.currentUserUid, newState as unknown as AppState);
+          return { categories: newState.categories };
+        }),
 
       updateCategory: (id, updates) =>
-        set((state) => ({
-          categories: state.categories.map((c) =>
-            c.id === id ? { ...c, ...updates } : c
-          ),
-        })),
+        set((state) => {
+          const newState = {
+            ...state,
+            categories: state.categories.map((c) => c.id === id ? { ...c, ...updates } : c),
+          };
+          pushUserDocToFirestore(state.currentUserUid, newState as unknown as AppState);
+          return { categories: newState.categories };
+        }),
 
       deleteCategory: (id) =>
-        set((state) => ({
-          categories: state.categories.filter((c) => c.id !== id),
-          // Optional: Remove categoryId from tasks that had this category
-          tasks: state.tasks.map((t) =>
-            t.categoryId === id ? { ...t, categoryId: null } : t
-          ),
-        })),
+        set((state) => {
+          const newState = {
+            ...state,
+            categories: state.categories.filter((c) => c.id !== id),
+            tasks: state.tasks.map((t) => t.categoryId === id ? { ...t, categoryId: null } : t),
+          };
+          pushUserDocToFirestore(state.currentUserUid, newState as unknown as AppState);
+          return { categories: newState.categories, tasks: newState.tasks };
+        }),
 
       setTimer: (updates) =>
         set((state) => {
@@ -204,9 +246,14 @@ export const useStore = create<AppState>()(
         }),
 
       updateSettings: (updates) =>
-        set((state) => ({
-          settings: { ...state.settings, ...updates },
-        })),
+        set((state) => {
+          const newState = {
+            ...state,
+            settings: { ...state.settings, ...updates },
+          };
+          pushUserDocToFirestore(state.currentUserUid, newState as unknown as AppState);
+          return { settings: newState.settings };
+        }),
 
       setDarkMode: (dark) => set({ darkMode: dark }),
 
@@ -214,6 +261,8 @@ export const useStore = create<AppState>()(
       setLastSynced: (time) => set({ lastSynced: time }),
 
       clearUserData: () => {
+        if (unsubTasks) unsubTasks();
+        if (unsubDoc) unsubDoc();
         set({
           tasks: [],
           categories: DEFAULT_CATEGORIES,
@@ -222,6 +271,7 @@ export const useStore = create<AppState>()(
           pendingReflection: null,
           activeContextNote: null,
           syncStatus: 'idle',
+          currentUserUid: null,
           timer: {
             timeLeft: DEFAULT_SETTINGS.focusDuration * 60,
             isActive: false,
@@ -231,8 +281,6 @@ export const useStore = create<AppState>()(
             resumedCheckpointId: null,
           },
         });
-        // Also wipe the persisted localStorage entry so data never appears
-        // for the next person who opens the app on this device.
         if (typeof window !== 'undefined') {
           localStorage.removeItem('focus-flow-storage');
         }
@@ -361,30 +409,107 @@ export const useStore = create<AppState>()(
             if (reflectionData.parentId) {
               checkpoint.parentId = reflectionData.parentId;
             }
-            return { ...t, checkpoints: [...(t.checkpoints ?? []), checkpoint] };
+            const newTask = { ...t, checkpoints: [...(t.checkpoints ?? []), checkpoint] };
+            pushTaskToFirestore(state.currentUserUid, newTask);
+            return newTask;
           });
 
-          return {
-            tasks: updatedTasks,
+          const newState = {
+            ...state,
             sessionReflections: [
               ...state.sessionReflections,
               { ...reflectionData, sessionId: uuidv4() },
             ],
+          };
+          pushUserDocToFirestore(state.currentUserUid, newState as unknown as AppState);
+
+          return {
+            tasks: updatedTasks,
+            sessionReflections: newState.sessionReflections,
             activeContextNote: null,
           };
         }),
 
       loadState: (loadedState) => {
-        // Merge loaded state carefully
         set((state) => ({
           ...state,
           ...loadedState,
-          // Restore categories from Drive if available, otherwise keep current
           categories: loadedState.categories && loadedState.categories.length > 0
             ? loadedState.categories
             : state.categories,
-          timer: { ...state.timer, ...loadedState.timer, isActive: false }, // Don't auto-start loaded timer
+          timer: { ...state.timer, ...loadedState.timer, isActive: false },
         }));
+      },
+
+      startSync: async (uid: string, mode: 'merge' | 'replace') => {
+        const state = get();
+        set({ currentUserUid: uid, syncStatus: 'syncing' });
+
+        try {
+          if (mode === 'merge') {
+            const batch = writeBatch(db);
+            const userRef = doc(db, 'users', uid, 'data', 'focusflow');
+            batch.set(userRef, {
+              categories: state.categories,
+              settings: state.settings,
+              sessionReflections: state.sessionReflections,
+              lastSynced: Date.now()
+            }, { merge: true });
+
+            for (const task of state.tasks) {
+              const taskRef = doc(db, `users/${uid}/tasks`, task.id);
+              const { checkpoints, ...taskData } = task;
+              batch.set(taskRef, taskData);
+
+              for (const cp of checkpoints || []) {
+                const cpRef = doc(db, `users/${uid}/tasks/${task.id}/checkpoints`, cp.id);
+                batch.set(cpRef, cp);
+              }
+            }
+            await batch.commit();
+          }
+
+          // Live Sync setup
+          if (unsubDoc) unsubDoc();
+          if (unsubTasks) unsubTasks();
+
+          unsubDoc = onSnapshot(doc(db, 'users', uid, 'data', 'focusflow'), (snap) => {
+            if (snap.metadata.hasPendingWrites) return;
+            if (snap.exists()) {
+              const data = snap.data();
+              set({
+                categories: data.categories || get().categories,
+                settings: data.settings || get().settings,
+                sessionReflections: data.sessionReflections || get().sessionReflections,
+                lastSynced: data.lastSynced,
+                syncStatus: 'success'
+              });
+            }
+          });
+
+          unsubTasks = onSnapshot(collection(db, `users/${uid}/tasks`), async (snap) => {
+            if (snap.metadata.hasPendingWrites) return;
+
+            // When tasks change from the server, we need to load them and their checkpoints
+            // This is a naive full-fetch approach for simplicity when server state changes.
+            const newTasks: Task[] = [];
+            for (const docSnap of snap.docs) {
+              const taskData = docSnap.data() as Omit<Task, 'checkpoints'>;
+              // Fetch checkpoints subcollection
+              const cpSnap = await getDocs(collection(db, `users/${uid}/tasks/${taskData.id}/checkpoints`));
+              const checkpoints = cpSnap.docs.map(d => d.data() as Checkpoint);
+              newTasks.push({ ...taskData, checkpoints } as Task);
+            }
+            set({ tasks: newTasks, syncStatus: 'success' });
+          }, (err) => {
+            console.error(err);
+            set({ syncStatus: 'error' });
+          });
+
+        } catch (err) {
+          console.error(err);
+          set({ syncStatus: 'error' });
+        }
       },
     }),
     {

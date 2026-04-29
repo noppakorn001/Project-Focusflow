@@ -14,6 +14,16 @@ import {
   RefreshCw,
   CheckCircle2,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { signInWithPopup, signOut, onAuthStateChanged, type User } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useStore } from '@/lib/store';
 import { toast } from 'sonner';
 
@@ -27,11 +37,53 @@ const NAV_ITEMS = [
 
 export function SidebarContent() {
   const pathname = usePathname();
-  const { syncStatus } = useStore();
+  const { syncStatus, tasks, clearUserData, startSync } = useStore();
+  const [user, setUser] = useState<User | null>(null);
+  const [showMergePrompt, setShowMergePrompt] = useState(false);
 
-  const handleManualSync = async () => {
-    if (syncStatus === 'syncing') return;
-    toast.info('Sync is handled automatically. Check Settings for connection status.');
+  useEffect(() => {
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignIn = async () => {
+    try {
+      const res = await signInWithPopup(auth, googleProvider);
+      if (tasks.length > 0) {
+        setShowMergePrompt(true);
+      } else {
+        startSync(res.user.uid, 'replace');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Sign in failed');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    clearUserData();
+  };
+
+  const handleMerge = () => {
+    if (!user) return;
+    startSync(user.uid, 'merge');
+    setShowMergePrompt(false);
+  };
+
+  const handleReplace = () => {
+    if (!user) return;
+    startSync(user.uid, 'replace');
+    setShowMergePrompt(false);
+  };
+
+  const getSyncDotColor = () => {
+    if (syncStatus === 'error') return '#ff5b4f'; // Red
+    if (syncStatus === 'syncing') return '#a3a3a3'; // Grey
+    return '#ffffff'; // White
   };
 
   return (
@@ -121,56 +173,111 @@ export function SidebarContent() {
         })}
       </nav>
 
-      {/* Sync Status */}
-      <div
-        className="mt-auto pt-4"
-        style={{ borderTop: '1px solid #ebebeb' }}
-      >
-        <button
-          onClick={handleManualSync}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            width: '100%',
-            padding: '8px 10px',
-            borderRadius: '8px',
-            background: 'var(--card)',
-            boxShadow: syncStatus === 'error'
-              ? 'rgba(255,91,79,0.3) 0px 0px 0px 1px'
-              : 'var(--shadow-border-light)',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          {syncStatus === 'syncing' ? (
-            <RefreshCw style={{ width: '14px', height: '14px', color: '#0a72ef', animation: 'spin 1s linear infinite' }} />
-          ) : syncStatus === 'error' ? (
-            <CloudOff style={{ width: '14px', height: '14px', color: '#ff5b4f' }} />
-          ) : syncStatus === 'success' ? (
-            <CheckCircle2 style={{ width: '14px', height: '14px', color: '#0a72ef' }} />
-          ) : (
-            <Cloud style={{ width: '14px', height: '14px', color: 'var(--muted-foreground)' }} />
-          )}
-          <span
+      {/* Auth & Sync Status */}
+      <div className="mt-auto pt-6" style={{ borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ position: 'relative', width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', filter: 'grayscale(100%)', border: '1px solid var(--border)' }}>
+                {user.photoURL ? (
+                  <Image src={user.photoURL} alt="Profile" fill style={{ objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', background: '#e5e5e5' }} />
+                )}
+              </div>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: '11px',
+                  fontFamily: "'Geist Mono', monospace",
+                  fontWeight: 600,
+                  color: 'var(--muted-foreground)',
+                  cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                SIGN OUT
+              </button>
+            </div>
+            
+            {/* Sync Dot */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '10px', fontFamily: "'Geist Mono', monospace", color: 'var(--muted-foreground)' }}>
+                {syncStatus === 'syncing' ? 'SYNCING' : syncStatus === 'error' ? 'ERROR' : 'SYNCED'}
+              </span>
+              <div
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: getSyncDotColor(),
+                  boxShadow: syncStatus === 'syncing' ? '0 0 8px rgba(163, 163, 163, 0.6)' : syncStatus === 'error' ? '0 0 8px rgba(255, 91, 79, 0.6)' : '0 0 8px rgba(255, 255, 255, 0.6)',
+                  animation: syncStatus === 'syncing' ? 'pulse 1.5s infinite' : 'none',
+                  border: '1px solid rgba(0,0,0,0.1)'
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={handleSignIn}
             style={{
-              fontSize: '12px',
-              fontWeight: 500,
-              color: syncStatus === 'error' ? '#ff5b4f' : '#666666',
+              width: '100%',
+              padding: '10px',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--foreground)',
               fontFamily: "'Geist Mono', monospace",
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              letterSpacing: '0.05em',
+              transition: 'all 0.15s ease',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent';
             }}
           >
-            {syncStatus === 'syncing'
-              ? 'SYNCING...'
-              : syncStatus === 'error'
-              ? 'SYNC ERROR'
-              : syncStatus === 'success'
-              ? 'CLOUD SYNCED'
-              : 'SYNC IDLE'}
-          </span>
-        </button>
+            SIGN IN
+          </button>
+        )}
       </div>
+
+      <Dialog open={showMergePrompt} onOpenChange={setShowMergePrompt}>
+        <DialogContent style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px', maxWidth: '400px' }}>
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: "'Geist Mono', monospace", fontSize: '16px', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--foreground)' }}>LOCAL DATA DETECTED</DialogTitle>
+            <DialogDescription style={{ color: 'var(--muted-foreground)', marginTop: '8px', fontSize: '14px', lineHeight: '1.5' }}>
+              You have local tasks. Would you like to merge them with your cloud data, or replace them with the cloud version?
+            </DialogDescription>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
+            <button
+              onClick={handleMerge}
+              style={{ padding: '12px', background: 'var(--foreground)', color: 'var(--background)', borderRadius: '8px', fontFamily: "'Geist Mono', monospace", fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+            >
+              MERGE TO CLOUD
+            </button>
+            <button
+              onClick={handleReplace}
+              style={{ padding: '12px', background: 'transparent', color: 'var(--foreground)', border: '1px solid var(--border)', borderRadius: '8px', fontFamily: "'Geist Mono', monospace", fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+            >
+              REPLACE WITH CLOUD
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
