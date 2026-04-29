@@ -447,6 +447,7 @@ export const useStore = create<AppState>()(
 
         try {
           if (mode === 'merge') {
+            // Push local data up to Firestore first
             const batch = writeBatch(db);
             const userRef = doc(db, 'users', uid, 'data', 'focusflow');
             batch.set(userRef, {
@@ -460,7 +461,6 @@ export const useStore = create<AppState>()(
               const taskRef = doc(db, `users/${uid}/tasks`, task.id);
               const { checkpoints, ...taskData } = task;
               batch.set(taskRef, taskData);
-
               for (const cp of checkpoints || []) {
                 const cpRef = doc(db, `users/${uid}/tasks/${task.id}/checkpoints`, cp.id);
                 batch.set(cpRef, cp);
@@ -469,42 +469,86 @@ export const useStore = create<AppState>()(
             await batch.commit();
           }
 
-          // Live Sync setup
-          if (unsubDoc) unsubDoc();
-          if (unsubTasks) unsubTasks();
+          // Tear down any existing listeners before creating new ones
+          if (unsubDoc) { unsubDoc(); unsubDoc = null; }
+          if (unsubTasks) { unsubTasks(); unsubTasks = null; }
 
-          unsubDoc = onSnapshot(doc(db, 'users', uid, 'data', 'focusflow'), (snap) => {
-            if (snap.metadata.hasPendingWrites) return;
-            if (snap.exists()) {
-              const data = snap.data();
-              set({
-                categories: data.categories || get().categories,
-                settings: data.settings || get().settings,
-                sessionReflections: data.sessionReflections || get().sessionReflections,
-                lastSynced: data.lastSynced,
-                syncStatus: 'success'
-              });
-            }
+          // ── Initial load of all tasks from Firestore (both modes) ──
+          const [tasksSnap, userDocSnap] = await Promise.all([
+            getDocs(collection(db, `users/${uid}/tasks`)),
+            getDocs(collection(db, 'users', uid, 'data'))
+          ]);
+
+          const cloudTasks: Task[] = [];
+          for (const docSnap of tasksSnap.docs) {
+            const taskData = docSnap.data() as Omit<Task, 'checkpoints'>;
+            const cpSnap = await getDocs(collection(db, `users/${uid}/tasks/${taskData.id}/checkpoints`));
+            const checkpoints = cpSnap.docs.map(d => d.data() as Checkpoint);
+            cloudTasks.push({ ...taskData, checkpoints } as Task);
+          }
+
+          const userDoc = userDocSnap.docs.find(d => d.id === 'focusflow');
+          const userData = userDoc?.data();
+
+          set({
+            tasks: mode === 'replace' ? cloudTasks : state.tasks,
+            categories: userData?.categories || state.categories,
+            settings: userData?.settings || state.settings,
+            sessionReflections: userData?.sessionReflections || state.sessionReflections,
           });
 
-          unsubTasks = onSnapshot(collection(db, `users/${uid}/tasks`), async (snap) => {
-            if (snap.metadata.hasPendingWrites) return;
-
-            // When tasks change from the server, we need to load them and their checkpoints
-            // This is a naive full-fetch approach for simplicity when server state changes.
-            const newTasks: Task[] = [];
-            for (const docSnap of snap.docs) {
-              const taskData = docSnap.data() as Omit<Task, 'checkpoints'>;
-              // Fetch checkpoints subcollection
-              const cpSnap = await getDocs(collection(db, `users/${uid}/tasks/${taskData.id}/checkpoints`));
-              const checkpoints = cpSnap.docs.map(d => d.data() as Checkpoint);
-              newTasks.push({ ...taskData, checkpoints } as Task);
+          // ── Live listener: user doc (categories, settings, reflections) ──
+          unsubDoc = onSnapshot(
+            doc(db, 'users', uid, 'data', 'focusflow'),
+            { includeMetadataChanges: true },
+            (snap) => {
+              // Skip local-cache reads to avoid echoing our own writes
+              if (snap.metadata.fromCache) return;
+              if (snap.exists()) {
+                const data = snap.data();
+                set({
+                  categories: data.categories || get().categories,
+                  settings: data.settings || get().settings,
+                  sessionReflections: data.sessionReflections || get().sessionReflections,
+                  lastSynced: data.lastSynced,
+                  syncStatus: 'success',
+                });
+              }
+            },
+            (err) => {
+              console.error('userDoc listener error:', err);
+              set({ syncStatus: 'error' });
             }
-            set({ tasks: newTasks, syncStatus: 'success' });
-          }, (err) => {
-            console.error(err);
-            set({ syncStatus: 'error' });
-          });
+          );
+
+          // ── Live listener: tasks collection ──
+          unsubTasks = onSnapshot(
+            collection(db, `users/${uid}/tasks`),
+            { includeMetadataChanges: true },
+            async (snap) => {
+              // Skip local-cache reads; only apply confirmed server updates
+              if (snap.metadata.fromCache) return;
+              if (snap.metadata.hasPendingWrites) return;
+
+              const newTasks: Task[] = [];
+              for (const docSnap of snap.docs) {
+                const taskData = docSnap.data() as Omit<Task, 'checkpoints'>;
+                const cpSnap = await getDocs(
+                  collection(db, `users/${uid}/tasks/${taskData.id}/checkpoints`)
+                );
+                const checkpoints = cpSnap.docs.map(d => d.data() as Checkpoint);
+                newTasks.push({ ...taskData, checkpoints } as Task);
+              }
+              set({ tasks: newTasks, syncStatus: 'success' });
+            },
+            (err) => {
+              console.error('tasks listener error:', err);
+              set({ syncStatus: 'error' });
+            }
+          );
+
+          set({ syncStatus: 'success' });
+          setTimeout(() => set({ syncStatus: 'idle' }), 2000);
 
         } catch (err) {
           console.error(err);
