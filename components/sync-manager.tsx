@@ -1,84 +1,78 @@
 'use client';
 
-import { useStore } from '@/lib/store';
 import { useEffect, useRef } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'sonner';
+import { auth } from '@/lib/firebase';
+import { loadFromFirestore, saveToFirestore } from '@/lib/firestore-sync';
+import { useStore } from '@/lib/store';
 
 export function SyncManager() {
-  const { tasks, categories, timer, settings, loadState, setSyncStatus } = useStore();
-  const isLoadedRef = useRef(false);
+  const { tasks, categories, settings, sessionReflections, loadState, setSyncStatus, clearUserData } = useStore();
+  const isLoadedRef  = useRef(false);
+  const currentUidRef = useRef<string | null>(null);
 
-  // Initial Load
+  // ── Initial Load ────────────────────────────────────────────────────────────
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const authRes = await fetch('/api/auth/status');
-        const { isAuthenticated } = await authRes.json();
-        if (!isAuthenticated) {
-          isLoadedRef.current = true;
-          return;
-        }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const previousUid = currentUidRef.current;
+      currentUidRef.current = user?.uid ?? null;
 
-        setSyncStatus('syncing');
-        const response = await fetch('/api/drive/sync');
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.tasks) {
-            loadState(data);
-            toast.success('Data loaded from Drive');
-          }
+      if (!user) {
+        // User signed out — clear all data from memory and localStorage
+        if (previousUid !== null) {
+          clearUserData();
         }
-      } catch (error) {
-        console.error('Load error:', error);
-        toast.error('Failed to load data from Drive');
+        isLoadedRef.current = true;
+        setSyncStatus('idle');
+        return;
+      }
+
+      setSyncStatus('syncing');
+      try {
+        const data = await loadFromFirestore(user.uid);
+        if (data?.tasks) {
+          loadState(data);
+          toast.success('Data loaded from cloud');
+        }
+      } catch (err) {
+        console.error('Load error:', err);
+        toast.error('Failed to load data from cloud');
       } finally {
         setSyncStatus('idle');
         isLoadedRef.current = true;
       }
-    };
-    loadData();
-  }, [loadState, setSyncStatus]);
+    });
 
-  // Auto-Sync (includes categories)
+    return () => unsubscribe();
+  }, [loadState, setSyncStatus, clearUserData]);
+
+  // ── Auto-Save (debounced 5 s after any state change) ────────────────────────
   useEffect(() => {
     if (!isLoadedRef.current) return;
+    const uid = currentUidRef.current;
+    if (!uid) return;
 
-    const syncData = async () => {
+    const timer = setTimeout(async () => {
       setSyncStatus('syncing');
       try {
-        const authRes = await fetch('/api/auth/status');
-        const { isAuthenticated } = await authRes.json();
-
-        if (!isAuthenticated) {
-          setSyncStatus('idle');
-          return;
-        }
-
-        const response = await fetch('/api/drive/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tasks,
-            categories,
-            timer,
-            settings,
-            lastSynced: Date.now(),
-          }),
+        await saveToFirestore(uid, {
+          tasks,
+          categories,
+          settings,
+          sessionReflections,
+          lastSynced: Date.now(),
         });
-
-        if (!response.ok) throw new Error('Sync failed');
-
         setSyncStatus('success');
         setTimeout(() => setSyncStatus('idle'), 2000);
-      } catch (error) {
-        console.error('Sync error:', error);
+      } catch (err) {
+        console.error('Sync error:', err);
         setSyncStatus('error');
       }
-    };
+    }, 5000);
 
-    const timeoutId = setTimeout(syncData, 5000); // Debounce 5s
-    return () => clearTimeout(timeoutId);
-  }, [tasks, categories, timer, settings, setSyncStatus]);
+    return () => clearTimeout(timer);
+  }, [tasks, categories, settings, sessionReflections, setSyncStatus]);
 
   return null;
 }

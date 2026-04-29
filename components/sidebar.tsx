@@ -37,16 +37,37 @@ export function SidebarContent() {
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="mb-8 flex items-center px-2">
-        <Image
-          src="/Focusflow_Logo.png"
-          alt="FocusFlow"
-          width={130}
-          height={32}
-          style={{ height: 'auto' }}
-          className="object-contain"
-          priority
-        />
+      <div className="mb-8 flex items-center px-2 gap-3">
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          boxShadow: 'var(--shadow-border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--card)',
+          flexShrink: 0
+        }}>
+          <Image
+            src="/Focusflow_Logo.png"
+            alt="FocusFlow Icon"
+            width={36}
+            height={36}
+            className="object-contain"
+            priority
+          />
+        </div>
+        <span style={{
+          fontFamily: "'Geist', Arial, sans-serif",
+          fontSize: '16px',
+          fontWeight: 600,
+          letterSpacing: '-0.32px',
+          color: 'var(--foreground)'
+        }}>
+          FocusFlow
+        </span>
       </div>
 
       {/* Navigation */}

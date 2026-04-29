@@ -86,8 +86,10 @@ export interface AppState {
   setPendingReflection: (reflection: { taskId: string; taskName: string } | null) => void;
   logReflection: (reflection: Omit<FocusReflection, 'sessionId'>) => void;
 
-  // For Drive Sync
+  // For Firestore Sync
   loadState: (state: Partial<AppState>) => void;
+  /** Wipe all user-specific data from memory AND localStorage on sign-out. */
+  clearUserData: () => void;
 }
 
 const DEFAULT_SETTINGS: TimerSettings = {
@@ -194,6 +196,29 @@ export const useStore = create<AppState>()(
 
       setSyncStatus: (status) => set({ syncStatus: status }),
       setLastSynced: (time) => set({ lastSynced: time }),
+
+      clearUserData: () => {
+        set({
+          tasks: [],
+          categories: DEFAULT_CATEGORIES,
+          sessionReflections: [],
+          lastSynced: null,
+          pendingReflection: null,
+          syncStatus: 'idle',
+          timer: {
+            timeLeft: DEFAULT_SETTINGS.focusDuration * 60,
+            isActive: false,
+            mode: 'focus',
+            linkedTaskId: null,
+            startedAt: null,
+          },
+        });
+        // Also wipe the persisted localStorage entry so data never appears
+        // for the next person who opens the app on this device.
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('focus-flow-storage');
+        }
+      },
 
       resetTimer: () => {
         const { settings, timer } = get();

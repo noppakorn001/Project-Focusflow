@@ -7,6 +7,13 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { Cloud, LogOut, Moon, Sun } from 'lucide-react';
 import { ConfirmDialog, useConfirmDialog } from '@/components/confirm-dialog';
+import { auth, googleProvider } from '@/lib/firebase';
+import {
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  type User,
+} from 'firebase/auth';
 
 const inputStyle = {
   width: '100%',
@@ -49,62 +56,38 @@ const sectionDescStyle = {
 
 export default function SettingsPage() {
   const { settings, darkMode, updateSettings, setDarkMode, setSyncStatus } = useStore();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const { confirm, dialogProps } = useConfirmDialog();
 
+  // Track Firebase auth state reactively
   useEffect(() => {
-    const checkAuth = async () => {
-      const res = await fetch('/api/auth/status');
-      const data = await res.json();
-      setIsAuthenticated(data.isAuthenticated);
-    };
-    checkAuth();
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleConnectDrive = async () => {
+  const handleSignIn = async () => {
     try {
-      const res = await fetch('/api/auth/url');
-      const { url } = await res.json();
-
-      const width = 600;
-      const height = 700;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-
-      const popup = window.open(url, 'google_oauth', `width=${width},height=${height},left=${left},top=${top}`);
-
-      if (!popup) {
-        toast.error('Please allow popups to connect Google Drive');
-        return;
-      }
-
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
-          setIsAuthenticated(true);
-          toast.success('Connected to Google Drive');
-          window.removeEventListener('message', handleMessage);
-          setSyncStatus('idle');
-        }
-      };
-
-      window.addEventListener('message', handleMessage);
+      await signInWithPopup(auth, googleProvider);
+      toast.success('Signed in with Google — syncing enabled');
+      setSyncStatus('idle');
     } catch (error) {
-      console.error('Auth error:', error);
-      toast.error('Failed to initiate authentication');
+      console.error('Sign-in error:', error);
+      toast.error('Failed to sign in with Google');
     }
   };
 
-  const handleDisconnectDrive = () => {
+  const handleSignOut = () => {
     confirm({
-      title: 'Disconnect Google Drive',
-      description: 'Are you sure you want to disconnect? Syncing will stop and your data will only be stored locally.',
-      confirmLabel: 'Disconnect',
+      title: 'Sign out',
+      description: 'Are you sure you want to sign out? Cloud syncing will stop and your data will only be stored locally.',
+      confirmLabel: 'Sign out',
       variant: 'destructive',
       onConfirm: async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        setIsAuthenticated(false);
+        await signOut(auth);
         setSyncStatus('idle');
-        toast.success('Disconnected from Google Drive');
+        toast.success('Signed out — data saved locally');
       },
     });
   };
@@ -231,8 +214,8 @@ export default function SettingsPage() {
         {/* Cloud Sync */}
         <div style={cardStyle}>
           <div style={{ marginBottom: '24px' }}>
-            <h2 style={sectionTitleStyle}>Cloud Sync</h2>
-            <p style={sectionDescStyle}>Sync your data to Google Drive.</p>
+            <h2 style={sectionTitleStyle}>Google Account</h2>
+            <p style={sectionDescStyle}>Sign in to sync your data across devices via Firestore.</p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -242,29 +225,29 @@ export default function SettingsPage() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '8px',
-                  background: isAuthenticated ? 'var(--badge-blue-bg)' : 'var(--muted)',
-                  boxShadow: isAuthenticated ? 'rgba(10,114,239,0.2) 0px 0px 0px 1px' : 'var(--shadow-border-light)',
+                  background: user ? 'var(--badge-blue-bg)' : 'var(--muted)',
+                  boxShadow: user ? 'rgba(10,114,239,0.2) 0px 0px 0px 1px' : 'var(--shadow-border-light)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
-                <Cloud style={{ width: '18px', height: '18px', color: isAuthenticated ? 'var(--badge-blue-text)' : 'var(--muted-foreground)' }} />
+                <Cloud style={{ width: '18px', height: '18px', color: user ? 'var(--badge-blue-text)' : 'var(--muted-foreground)' }} />
               </div>
               <div>
                 <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--foreground)', display: 'block', fontFamily: "'Geist', sans-serif" }}>
-                  Google Drive
+                  {user ? user.displayName ?? 'Google Account' : 'Google Account'}
                 </span>
-                <span style={{ fontSize: '12px', color: isAuthenticated ? 'var(--badge-blue-text)' : 'var(--muted-foreground)', fontFamily: "'Geist', sans-serif" }}>
-                  {isAuthenticated ? 'Connected' : 'Not connected'}
+                <span style={{ fontSize: '12px', color: user ? 'var(--badge-blue-text)' : 'var(--muted-foreground)', fontFamily: "'Geist', sans-serif" }}>
+                  {user ? user.email ?? 'Connected' : 'Not signed in'}
                 </span>
               </div>
             </div>
 
-            {isAuthenticated ? (
+            {user ? (
               <button
-                onClick={handleDisconnectDrive}
+                onClick={handleSignOut}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -284,11 +267,11 @@ export default function SettingsPage() {
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
               >
                 <LogOut style={{ width: '14px', height: '14px' }} />
-                Disconnect
+                Sign out
               </button>
             ) : (
               <button
-                onClick={handleConnectDrive}
+                onClick={handleSignIn}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -307,7 +290,7 @@ export default function SettingsPage() {
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
               >
-                Connect
+                Sign in with Google
               </button>
             )}
           </div>
