@@ -2,7 +2,7 @@
 
 import type { Checkpoint } from '@/lib/store';
 import { format } from 'date-fns';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { CornerDownRight } from 'lucide-react';
@@ -231,8 +231,8 @@ export function CheckpointTimeline({ checkpoints, taskId }: Props) {
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444'];
 
   const renderGraph = () => {
-    const paths: JSX.Element[] = [];
-    const dots: JSX.Element[] = [];
+    const paths: React.ReactElement[] = [];
+    const dots: React.ReactElement[] = [];
 
     sorted.forEach((cp, idx) => {
       const y1 = positions[cp.id];
