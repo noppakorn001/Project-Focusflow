@@ -42,12 +42,16 @@ export function SidebarContent() {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        // Auto-sync on page load / refresh when already logged in
         try {
           await startSync(u.uid, 'replace');
-        } catch (err) {
-          console.error('Auto-sync on auth state change failed:', err);
-          toast.error('Sync failed — check your connection');
+        } catch (err: unknown) {
+          console.error('Auto-sync failed:', err);
+          const msg = err instanceof Error ? err.message : '';
+          if (msg.includes('permission') || msg.includes('insufficient')) {
+            toast.error('Firestore rules not configured — see Firebase Console → Firestore → Rules', { duration: 8000 });
+          } else {
+            toast.error('Sync failed — check your internet connection');
+          }
         }
       }
     });
@@ -84,6 +88,25 @@ export function SidebarContent() {
     if (!user) return;
     startSync(user.uid, 'replace');
     setShowMergePrompt(false);
+  };
+
+  const handleRetrySync = async () => {
+    if (!user || syncStatus === 'syncing') return;
+    try {
+      await startSync(user.uid, 'replace');
+      toast.success('Sync successful');
+    } catch (err: unknown) {
+      console.error('Retry sync failed:', err);
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('permission') || msg.includes('insufficient')) {
+        toast.error(
+          'Permission denied. Go to Firebase Console → Firestore Database → Rules and publish the correct rules.',
+          { duration: 10000 }
+        );
+      } else {
+        toast.error('Sync failed — check your internet connection');
+      }
+    }
   };
 
   const getSyncDotColor = () => {
@@ -209,10 +232,23 @@ export function SidebarContent() {
               </button>
             </div>
             
-            {/* Sync Dot */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '10px', fontFamily: "'Geist Mono', monospace", color: 'var(--muted-foreground)' }}>
-                {syncStatus === 'syncing' ? 'SYNCING' : syncStatus === 'error' ? 'ERROR' : 'SYNCED'}
+            {/* Sync Dot — clickable to retry on error */}
+            <button
+              onClick={syncStatus === 'error' ? handleRetrySync : undefined}
+              title={syncStatus === 'error' ? 'Click to retry sync' : syncStatus === 'syncing' ? 'Syncing...' : 'Synced with cloud'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'none',
+                border: 'none',
+                padding: '4px',
+                borderRadius: '6px',
+                cursor: syncStatus === 'error' ? 'pointer' : 'default',
+              }}
+            >
+              <span style={{ fontSize: '10px', fontFamily: "'Geist Mono', monospace", color: syncStatus === 'error' ? '#ff5b4f' : 'var(--muted-foreground)' }}>
+                {syncStatus === 'syncing' ? 'SYNCING' : syncStatus === 'error' ? 'RETRY ↺' : 'SYNCED'}
               </span>
               <div
                 style={{
@@ -220,12 +256,12 @@ export function SidebarContent() {
                   height: '8px',
                   borderRadius: '50%',
                   background: getSyncDotColor(),
-                  boxShadow: syncStatus === 'syncing' ? '0 0 8px rgba(163, 163, 163, 0.6)' : syncStatus === 'error' ? '0 0 8px rgba(255, 91, 79, 0.6)' : '0 0 8px rgba(255, 255, 255, 0.6)',
+                  boxShadow: syncStatus === 'syncing' ? '0 0 8px rgba(163, 163, 163, 0.6)' : syncStatus === 'error' ? '0 0 8px rgba(255, 91, 79, 0.8)' : '0 0 8px rgba(255, 255, 255, 0.6)',
                   animation: syncStatus === 'syncing' ? 'pulse 1.5s infinite' : 'none',
                   border: '1px solid rgba(0,0,0,0.1)'
                 }}
               />
-            </div>
+            </button>
           </div>
         ) : (
           <button
