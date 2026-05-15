@@ -191,7 +191,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="border-0 shadow-none bg-white" style={{ boxShadow: 'none', border: 'none' }}>
+                      <SelectTrigger className="border-0 shadow-none" style={{ boxShadow: 'none', border: 'none', background: 'var(--card)', color: 'var(--foreground)' }}>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                     </FormControl>
@@ -220,7 +220,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 <div style={{ boxShadow: 'var(--shadow-border)', borderRadius: '6px', overflow: 'hidden' }}>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="border-0 shadow-none bg-white" style={{ boxShadow: 'none', border: 'none' }}>
+                      <SelectTrigger className="border-0 shadow-none" style={{ boxShadow: 'none', border: 'none', background: 'var(--card)', color: 'var(--foreground)' }}>
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                     </FormControl>
@@ -254,7 +254,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         textAlign: 'left',
-                        color: field.value ? '#171717' : '#808080',
+                        color: field.value ? 'var(--foreground)' : 'var(--muted-foreground)',
                         cursor: 'pointer',
                       }}
                     >
@@ -359,8 +359,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 transition: 'background 0.15s ease',
                 whiteSpace: 'nowrap',
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--accent)')}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--card)')}
             >
               Add to Calendar
             </button>

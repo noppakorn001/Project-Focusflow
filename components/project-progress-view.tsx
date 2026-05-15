@@ -94,8 +94,8 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
                   <span
                     style={{
                       display: 'inline-flex',
-                      background: '#ebf5ff',
-                      color: '#0068d6',
+                      background: 'rgba(10,114,239,0.12)',
+                      color: '#0a72ef',
                       borderRadius: '9999px',
                       padding: '1px 8px',
                       fontSize: '11px',
@@ -125,7 +125,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
                     fontFamily: "'Geist', Arial, sans-serif",
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: isComplete ? '#0a72ef' : '#171717',
+                    color: isComplete ? '#0a72ef' : 'var(--foreground)',
                     minWidth: '36px',
                     textAlign: 'right',
                   }}
@@ -139,7 +139,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
             <div
               style={{
                 height: '4px',
-                background: '#ebebeb',
+                background: 'var(--border)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
               }}
@@ -148,7 +148,7 @@ export function ProjectProgressView({ tasks }: ProjectProgressViewProps) {
                 style={{
                   height: '100%',
                   width: `${percentage}%`,
-                  background: isComplete ? '#0a72ef' : '#171717',
+                  background: isComplete ? '#0a72ef' : 'var(--foreground)',
                   borderRadius: '9999px',
                   transition: 'width 0.4s ease',
                 }}

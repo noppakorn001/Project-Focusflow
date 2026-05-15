@@ -215,8 +215,8 @@ export function CategoryManager() {
               boxShadow: 'var(--shadow-border-light)',
               transition: 'background 0.15s ease',
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--accent)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--card)')}
           >
             <Plus style={{ width: '13px', height: '13px' }} /> Manage Categories
           </button>
@@ -303,8 +303,8 @@ export function CategoryManager() {
                               transition: 'background 0.15s ease',
                               color: 'var(--muted-foreground)',
                             }}
-                            onMouseEnter={(e) => { if (categories.length > 1) { (e.currentTarget as HTMLElement).style.background = '#fff0ef'; (e.currentTarget as HTMLElement).style.color = '#ff5b4f'; } }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#808080'; }}
+                            onMouseEnter={(e) => { if (categories.length > 1) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,91,79,0.12)'; (e.currentTarget as HTMLElement).style.color = '#ff5b4f'; } }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'; }}
                           >
                             <Trash2 style={{ width: '14px', height: '14px' }} />
                           </button>

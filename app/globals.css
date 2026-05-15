@@ -87,42 +87,42 @@
   --sidebar-ring: hsla(212, 100%, 48%, 1);
 }
 
-/* Dark mode — minimal, preserved for toggle */
+/* Dark mode — Vercel "True Black" theme */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #000000;
+  --foreground: #ffffff;
   --card: #111111;
-  --card-foreground: #ededed;
+  --card-foreground: #ffffff;
   --popover: #111111;
-  --popover-foreground: #ededed;
-  --primary: #ededed;
-  --primary-foreground: #0a0a0a;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
   --secondary: #1a1a1a;
-  --secondary-foreground: #ededed;
-  --muted: #1a1a1a;
-  --muted-foreground: #888888;
+  --secondary-foreground: #ffffff;
+  --muted: #0a0a0a;
+  --muted-foreground: #a1a1aa;
   --accent: #1a1a1a;
-  --accent-foreground: #ededed;
+  --accent-foreground: #ffffff;
   --destructive: #ff5b4f;
   --destructive-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.08);
-  --ring: hsla(212, 100%, 56%, 1);
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #ededed;
-  --sidebar-primary: #ededed;
-  --sidebar-primary-foreground: #0a0a0a;
+  --ring: rgba(255, 255, 255, 0.5);
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #000000;
   --sidebar-accent: #1a1a1a;
-  --sidebar-accent-foreground: #ededed;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: hsla(212, 100%, 56%, 1);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: rgba(255, 255, 255, 0.5);
 
   /* Shadows for dark mode */
   --shadow-border: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
-  --shadow-border-light: rgba(255, 255, 255, 0.05) 0px 0px 0px 1px;
-  --shadow-subtle: rgba(0, 0, 0, 0.5) 0px 2px 2px;
-  --shadow-card: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px 2px 2px, rgba(0, 0, 0, 0.5) 0px 8px 8px -8px, #1a1a1a 0px 0px 0px 1px;
-  --shadow-card-hover: rgba(255, 255, 255, 0.15) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px 4px 4px, rgba(0, 0, 0, 0.5) 0px 12px 12px -8px, #1a1a1a 0px 0px 0px 1px;
+  --shadow-border-light: rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+  --shadow-subtle: rgba(0, 0, 0, 0.6) 0px 2px 2px;
+  --shadow-card: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.6) 0px 2px 2px, rgba(0, 0, 0, 0.6) 0px 8px 8px -8px;
+  --shadow-card-hover: rgba(255, 255, 255, 0.15) 0px 0px 0px 1px, rgba(0, 0, 0, 0.6) 0px 4px 4px, rgba(0, 0, 0, 0.6) 0px 12px 12px -8px;
 }
 
 @theme inline {
@@ -392,7 +392,7 @@
 /* Input with shadow-border */
 .vk-input {
   width: 100%;
-  background: var(--vercel-white);
+  background: var(--card);
   box-shadow: var(--shadow-border);
   border: none;
   border-radius: var(--radius-standard);
@@ -405,7 +405,7 @@
 }
 
 .vk-input:focus {
-  box-shadow: var(--shadow-border), 0 0 0 2px var(--focus-blue);
+  box-shadow: var(--shadow-border), 0 0 0 2px var(--ring);
 }
 
 .vk-input::placeholder {

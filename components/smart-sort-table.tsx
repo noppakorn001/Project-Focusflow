@@ -42,7 +42,8 @@ function SortIcon({ sortKey, current, dir }: { sortKey: SortKey; current: SortKe
 }
 
 const priorityColor: Record<string, string> = { high: '#ff5b4f', medium: '#de1d8d', low: '#0a72ef' };
-const priorityBg: Record<string, string> = { high: '#fff0ef', medium: '#fdf0f8', low: '#ebf5ff' };
+// Priority badge backgrounds use transparency so they work in dark mode
+const priorityBg: Record<string, string> = { high: 'rgba(255,91,79,0.15)', medium: 'rgba(222,29,141,0.12)', low: 'rgba(10,114,239,0.12)' };
 
 interface SmartSortTableProps {
   tasks: Task[];
@@ -120,13 +121,13 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
     letterSpacing: '0.06em',
     textTransform: 'uppercase' as const,
     background: 'var(--muted)',
-    borderBottom: '1px solid #ebebeb',
+    borderBottom: '1px solid var(--border)',
     whiteSpace: 'nowrap' as const,
   };
 
   const tdStyle = {
     padding: '12px 14px',
-    borderBottom: '1px solid #ebebeb',
+    borderBottom: '1px solid var(--border)',
     fontFamily: "'Geist', Arial, sans-serif",
     fontSize: '14px',
     verticalAlign: 'middle' as const,
@@ -136,10 +137,10 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
     <div
       style={{
         background: 'var(--card)',
-        boxShadow: 'rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px',
+        boxShadow: 'var(--shadow-card)',
         borderRadius: '8px',
         overflow: 'hidden',
-        border: 'none',
+        border: '1px solid var(--border)',
       }}
     >
       <div style={{ overflowX: 'auto' }}>
@@ -151,7 +152,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
               <th style={thStyle}>
                 <button
                   onClick={() => handleSort('priority')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'priority' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'priority' ? 'var(--foreground)' : 'var(--muted-foreground)', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
                 >
                   Priority <SortIcon sortKey="priority" current={sortKey} dir={sortDir} />
                 </button>
@@ -159,7 +160,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
               <th style={thStyle}>
                 <button
                   onClick={() => handleSort('deadline')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'deadline' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'deadline' ? 'var(--foreground)' : 'var(--muted-foreground)', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
                 >
                   Deadline <SortIcon sortKey="deadline" current={sortKey} dir={sortDir} />
                 </button>
@@ -167,7 +168,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
               <th style={thStyle}>
                 <button
                   onClick={() => handleSort('status')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'status' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'status' ? 'var(--foreground)' : 'var(--muted-foreground)', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0 }}
                 >
                   Status <SortIcon sortKey="status" current={sortKey} dir={sortDir} />
                 </button>
@@ -175,7 +176,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
               <th style={{ ...thStyle, textAlign: 'right' }}>
                 <button
                   onClick={() => handleSort('smartScore')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'smartScore' ? '#171717' : '#808080', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0, marginLeft: 'auto' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: sortKey === 'smartScore' ? 'var(--foreground)' : 'var(--muted-foreground)', letterSpacing: 'inherit', textTransform: 'inherit', padding: 0, marginLeft: 'auto' }}
                 >
                   Smart Score <SortIcon sortKey="smartScore" current={sortKey} dir={sortDir} />
                 </button>
@@ -192,9 +193,9 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
               const isOverdue = task.deadline && task.deadline < now && task.status !== 'completed';
 
               const statusConfig = {
-                completed: { bg: '#ebf5ff', color: '#0068d6', label: 'Done' },
-                'in-progress': { bg: '#fdf0f8', color: '#de1d8d', label: 'In Progress' },
-                todo: { bg: '#fafafa', color: 'var(--muted-foreground)', label: 'To Do' },
+                completed: { bg: 'rgba(10,114,239,0.12)', color: '#0a72ef', label: 'Done' },
+                'in-progress': { bg: 'rgba(222,29,141,0.12)', color: '#de1d8d', label: 'In Progress' },
+                todo: { bg: 'var(--secondary)', color: 'var(--muted-foreground)', label: 'To Do' },
               };
               const sc = statusConfig[task.status] || statusConfig.todo;
 
@@ -202,15 +203,15 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                 <tr
                   key={task.id}
                   style={{ transition: 'background 0.1s ease' }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--accent)')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
                 >
                   {/* Title */}
                   <td style={{ ...tdStyle, maxWidth: '200px' }}>
                     <span
                       style={{
                         fontWeight: 500,
-                        color: task.status === 'completed' ? '#808080' : '#171717',
+                        color: task.status === 'completed' ? 'var(--muted-foreground)' : 'var(--foreground)',
                         textDecoration: task.status === 'completed' ? 'line-through' : 'none',
                         display: 'block',
                         overflow: 'hidden',
@@ -257,7 +258,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                           gap: '4px',
                           fontFamily: "'Geist Mono', monospace",
                           fontSize: '12px',
-                          color: isOverdue ? '#ff5b4f' : '#4d4d4d',
+                          color: isOverdue ? '#ff5b4f' : 'var(--foreground)',
                           fontWeight: isOverdue ? 600 : 400,
                         }}
                       >
@@ -269,7 +270,7 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                         )}
                       </span>
                     ) : (
-                      <span style={{ color: '#cccccc', fontFamily: "'Geist Mono', monospace", fontSize: '12px' }}>—</span>
+                      <span style={{ color: 'var(--muted-foreground)', fontFamily: "'Geist Mono', monospace", fontSize: '12px' }}>—</span>
                     )}
                   </td>
 
@@ -305,8 +306,9 @@ export function SmartSortTable({ tasks }: SmartSortTableProps) {
                             justifyContent: 'flex-end',
                             gap: '4px',
                             cursor: 'default',
-                            background: '#ebf5ff',
-                            color: '#0068d6',
+                            background: 'var(--secondary)',
+                            color: 'var(--foreground)',
+                            border: '1px solid var(--border)',
                             borderRadius: '9999px',
                             padding: '2px 8px',
                             fontSize: '12px',

@@ -52,7 +52,7 @@ export function ConfirmDialog({
                   width: '38px',
                   height: '38px',
                   borderRadius: '8px',
-                  background: '#fff0ef',
+                  background: 'rgba(255, 91, 79, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -105,8 +105,8 @@ export function ConfirmDialog({
               boxShadow: 'var(--shadow-border-light)',
               transition: 'background 0.15s ease',
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--accent)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--card)')}
           >
             {cancelLabel}
           </button>
@@ -119,7 +119,7 @@ export function ConfirmDialog({
               padding: '8px 16px',
               borderRadius: '6px',
               border: 'none',
-              background: variant === 'destructive' ? '#ff5b4f' : '#171717',
+              background: variant === 'destructive' ? '#ff5b4f' : 'var(--primary)',
               color: 'var(--primary-foreground)',
               fontSize: '14px',
               fontWeight: 500,

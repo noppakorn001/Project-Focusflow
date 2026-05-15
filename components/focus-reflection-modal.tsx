@@ -93,8 +93,9 @@ export function FocusReflectionModal() {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                background: '#ebf5ff',
-                color: '#0068d6',
+                background: 'var(--secondary)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
                 borderRadius: '9999px',
                 padding: '4px 12px',
                 fontSize: '13px',
@@ -127,16 +128,13 @@ export function FocusReflectionModal() {
                   flex: 1,
                   padding: '10px',
                   borderRadius: '9999px',
-                  border: 'none',
-                  background: madeProgress === true ? '#171717' : '#ffffff',
-                  color: madeProgress === true ? '#ffffff' : '#171717',
+                  border: '1px solid var(--border)',
+                  background: madeProgress === true ? 'var(--foreground)' : 'transparent',
+                  color: madeProgress === true ? 'var(--background)' : 'var(--foreground)',
                   fontSize: '14px',
                   fontWeight: 500,
                   fontFamily: "'Geist', Arial, sans-serif",
                   cursor: 'pointer',
-                  boxShadow: madeProgress === true
-                    ? 'none'
-                    : 'var(--shadow-border-light)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -148,16 +146,13 @@ export function FocusReflectionModal() {
                   flex: 1,
                   padding: '10px',
                   borderRadius: '9999px',
-                  border: 'none',
-                  background: madeProgress === false ? '#171717' : '#ffffff',
-                  color: madeProgress === false ? '#ffffff' : '#171717',
+                  border: '1px solid var(--border)',
+                  background: madeProgress === false ? 'var(--foreground)' : 'transparent',
+                  color: madeProgress === false ? 'var(--background)' : 'var(--foreground)',
                   fontSize: '14px',
                   fontWeight: 500,
                   fontFamily: "'Geist', Arial, sans-serif",
                   cursor: 'pointer',
-                  boxShadow: madeProgress === false
-                    ? 'none'
-                    : 'var(--shadow-border-light)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -183,8 +178,9 @@ export function FocusReflectionModal() {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  background: '#ebf5ff',
-                  color: '#0068d6',
+                  background: 'var(--secondary)',
+                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
                   borderRadius: '9999px',
                   padding: '2px 10px',
                   fontSize: '12px',
@@ -269,8 +265,8 @@ export function FocusReflectionModal() {
               boxShadow: 'var(--shadow-border-light)',
               transition: 'background 0.15s ease',
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#fafafa')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#ffffff')}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--accent)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--card)')}
           >
             Skip
           </button>

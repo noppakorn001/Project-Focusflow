@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Task } from '@/lib/store';
 import {
   Tooltip,
@@ -13,17 +13,34 @@ interface FocusHeatmapProps {
   tasks: Task[];
 }
 
-// Vercel-inspired blue gradient: empty = #fafafa → full = #0a72ef
-function getColor(minutes: number): string {
+// Vercel dark spec: empty = deep grey → full = pure white (greyscale)
+function getColor(minutes: number, isDark?: boolean): string {
+  if (isDark) {
+    if (minutes === 0) return '#1a1a1a';
+    if (minutes <= 20) return '#3d3d3d';
+    if (minutes <= 45) return '#666666';
+    if (minutes <= 90) return '#a1a1aa';
+    return '#ffffff';
+  }
+  // Light mode: empty = light grey → full = dark
   if (minutes === 0) return '#ebebeb';
-  if (minutes <= 20) return '#c8dff9';
-  if (minutes <= 45) return '#7bb6f4';
-  if (minutes <= 90) return '#2e8ef0';
-  return '#0a72ef';
+  if (minutes <= 20) return '#c8c8c8';
+  if (minutes <= 45) return '#888888';
+  if (minutes <= 90) return '#444444';
+  return '#171717';
 }
 
 export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains('dark'));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const focusByDay = useMemo(() => {
     const map: Record<string, number> = {};
@@ -142,7 +159,7 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
                       width={CELL}
                       height={CELL}
                       rx={2}
-                      fill={getColor(cell.minutes)}
+                      fill={getColor(cell.minutes, isDark)}
                       opacity={isHovered ? 0.75 : 1}
                       style={{ cursor: 'default', transition: 'opacity 0.1s ease' }}
                       onMouseEnter={() => setHoveredDay(cell.dateKey)}
@@ -194,7 +211,7 @@ export function FocusHeatmap({ tasks }: FocusHeatmapProps) {
         </span>
         <svg width={72} height={12}>
           {[0, 20, 45, 75, 100].map((mins, i) => (
-            <rect key={mins} x={i * 15} y={0} width={12} height={12} rx={2} fill={getColor(mins)} />
+            <rect key={mins} x={i * 15} y={0} width={12} height={12} rx={2} fill={getColor(mins, isDark)} />
           ))}
         </svg>
         <span

@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TimerLogic } from '@/components/timer-logic';
 import { FocusReflectionModal } from '@/components/focus-reflection-modal';
-import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeProvider, ThemeScript } from '@/components/theme-provider';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
@@ -22,6 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         suppressHydrationWarning
         style={{
@@ -85,7 +88,7 @@ export default function RootLayout({
 
               <main
                 className="flex-1 overflow-y-auto p-4 md:p-8"
-                style={{ background: 'var(--muted)' }}
+                style={{ background: 'var(--background)' }}
               >
                 <TimerLogic />
                 <FocusReflectionModal />

@@ -169,22 +169,22 @@ export function SidebarContent() {
                 fontSize: '14px',
                 fontWeight: isActive ? 600 : 500,
                 letterSpacing: isActive ? '-0.14px' : 'normal',
-                color: isActive ? '#171717' : '#666666',
-                background: isActive ? '#f3f3f3' : 'transparent',
+                color: isActive ? 'var(--foreground)' : 'var(--muted-foreground)',
+                background: isActive ? 'var(--accent)' : 'transparent',
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
-                boxShadow: isActive ? 'var(--shadow-border-light)' : 'none',
+                border: isActive ? '1px solid var(--border)' : '1px solid transparent',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = '#fafafa';
-                  (e.currentTarget as HTMLElement).style.color = '#171717';
+                  (e.currentTarget as HTMLElement).style.background = 'var(--accent)';
+                  (e.currentTarget as HTMLElement).style.color = 'var(--foreground)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
                   (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.color = '#666666';
+                  (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)';
                 }
               }}
             >
@@ -193,7 +193,7 @@ export function SidebarContent() {
                   width: '15px',
                   height: '15px',
                   flexShrink: 0,
-                  color: isActive ? '#171717' : '#808080',
+                  color: isActive ? 'var(--foreground)' : 'var(--muted-foreground)',
                 }}
               />
               {item.label}
@@ -258,7 +258,7 @@ export function SidebarContent() {
                   background: getSyncDotColor(),
                   boxShadow: syncStatus === 'syncing' ? '0 0 8px rgba(163, 163, 163, 0.6)' : syncStatus === 'error' ? '0 0 8px rgba(255, 91, 79, 0.8)' : '0 0 8px rgba(255, 255, 255, 0.6)',
                   animation: syncStatus === 'syncing' ? 'pulse 1.5s infinite' : 'none',
-                  border: '1px solid rgba(0,0,0,0.1)'
+                  border: '1px solid var(--border)'
                 }}
               />
             </button>
@@ -329,8 +329,8 @@ export function Sidebar() {
     <div
       className="flex h-screen w-64 flex-col px-4 py-6"
       style={{
-        background: 'var(--card)',
-        boxShadow: '1px 0 0 0 rgba(0,0,0,0.08)',
+        background: 'var(--sidebar)',
+        borderRight: '1px solid var(--border)',
       }}
     >
       <SidebarContent />
